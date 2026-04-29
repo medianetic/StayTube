@@ -1,0 +1,134 @@
+import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
+import fs from 'node:fs/promises'
+import Store from 'electron-store'
+import { BinaryManager } from './binaryManager'
+import { Downloader } from './downloader'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+const store = new Store()
+const binaryManager = new BinaryManager()
+const downloader = new Downloader(binaryManager)
+
+// ... rest of env setup
+process.env.APP_ROOT = path.join(__dirname, '..')
+export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
+export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
+export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
+
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST
+
+let win: BrowserWindow | null
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.mjs'),
+    },
+  })
+
+  // IPC Handlers
+  ipcMain.handle('check-binaries', () => binaryManager.checkBinaries())
+  
+  ipcMain.handle('download-yt-dlp', async (_event) => {
+    await binaryManager.downloadYTIDlp((progress) => {
+      win?.webContents.send('binary-progress', { name: 'yt-dlp', progress })
+    })
+    return true
+  })
+
+  ipcMain.handle('download-ffmpeg', async (_event) => {
+    await binaryManager.downloadFFmpeg((progress) => {
+      win?.webContents.send('binary-progress', { name: 'ffmpeg', progress })
+    })
+    return true
+  })
+
+  ipcMain.handle('get-metadata', async (_event, url) => {
+    return await downloader.getMetadata(url)
+  })
+
+  ipcMain.handle('start-download', async (_event, options) => {
+    const downloadOptions = {
+      ...options,
+      outputDir: options.outputDir || store.get('downloadDir') || app.getPath('downloads'),
+      win: win!
+    }
+    return await downloader.download(downloadOptions)
+  })
+
+  ipcMain.handle('select-directory', async () => {
+    const result = await dialog.showOpenDialog(win!, {
+      properties: ['openDirectory']
+    })
+    if (!result.canceled) {
+      return result.filePaths[0]
+    }
+    return null
+  })
+
+  ipcMain.handle('get-store-value', (_event, key) => store.get(key))
+  ipcMain.handle('set-store-value', (_event, key, value) => store.set(key, value))
+  ipcMain.handle('check-video-exists', (_event, title) => downloader.checkFileExists(title, store.get('downloadDir') as string))
+  ipcMain.handle('open-external', (_event, url) => shell.openExternal(url))
+  ipcMain.handle('open-file', (_event, filePath) => shell.openPath(filePath))
+
+  ipcMain.handle('list-videos', async (_event, dirPath) => {
+    try {
+      const folder = dirPath || store.get('downloadDir') || app.getPath('downloads')
+      const files = await fs.readdir(folder)
+      const videoExtensions = ['.mp4', '.mkv', '.webm', '.avi', '.mov', '.m4a', '.mp3']
+      
+      const videos = []
+      for (const file of files) {
+        const ext = path.extname(file).toLowerCase()
+        if (videoExtensions.includes(ext)) {
+          const stats = await fs.stat(path.join(folder, file))
+          videos.push({
+            name: file,
+            path: path.join(folder, file),
+            size: stats.size,
+            mtime: stats.mtime
+          })
+        }
+      }
+      // Sort by modified time descending
+      return videos.sort((a, b) => b.mtime.getTime() - a.mtime.getTime())
+    } catch (e) {
+      console.error('Failed to list videos:', e)
+      return []
+    }
+  })
+
+  // ... rest of window logic
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL)
+  } else {
+    win.loadFile(path.join(RENDERER_DIST, 'index.html'))
+  }
+}
+
+// Quit when all windows are closed, except on macOS. There, it's common
+// for applications and their menu bar to stay active until the user quits
+// explicitly with Cmd + Q.
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+    win = null
+  }
+})
+
+app.on('activate', () => {
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow()
+  }
+})
+
+app.whenReady().then(createWindow)
