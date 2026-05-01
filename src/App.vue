@@ -20,6 +20,18 @@ const activeTab = ref('downloader')
 
 const { locale } = useI18n()
 
+const applyTheme = (tTheme: string) => {
+  const root = window.document.documentElement
+  root.classList.remove('light', 'dark')
+
+  if (tTheme === 'system') {
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    root.classList.add(systemTheme)
+  } else {
+    root.classList.add(tTheme)
+  }
+}
+
 const checkBinaries = async () => {
   checkingBinaries.value = true
   binaryStatus.value = await window.api.checkBinaries()
@@ -43,6 +55,9 @@ const installBinaries = async () => {
 onMounted(async () => {
   const lang = await window.api.getStoreValue('language') || 'en'
   locale.value = lang
+
+  const theme = await window.api.getStoreValue('theme') || 'system'
+  applyTheme(theme)
 
   checkBinaries()
   window.api.onBinaryProgress(({ progress }) => {

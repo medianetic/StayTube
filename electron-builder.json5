@@ -38,6 +38,8 @@
     "target": [
       "AppImage"
     ],
+    "category": "Utility",
+    "executableName": "staytube",
     "artifactName": "${productName}-Linux-${version}.${ext}"
   }
 }
