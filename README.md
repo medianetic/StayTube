@@ -72,7 +72,11 @@ Contributions are welcome. Please feel free to submit a Pull Request or open an 
 
 ## Author
 
-- **Nick Weschkalnies** - [@medianetic](https://github.com/medianetic) - [nick@weschkalnies.de](mailto:nick@weschkalnies.de)
+- **Nick Weschkalnies** - [@medianetic](https://github.com/medianetic) - [nick@weschkalnies.de](mailto:nick@weschkalnies.de
+
+## Support
+
+😊 If you like, you can <a href="https://buymeacoffee.com/weschkalnies">buy me a coffee</a>
 
 ## License
 
