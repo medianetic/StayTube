@@ -65,7 +65,6 @@ StayTube is built using a modern frontend stack integrated with Electron.
 - `electron/`: Main process logic, IPC handlers, and binary management.
 - `src/`: Vue 3 renderer process (UI components, styling, and state).
 - `public/`: Static assets for the application.
-- `docs/`: Project planning and improvement documentation.
 
 ## Contributing
 
