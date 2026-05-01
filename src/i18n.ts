@@ -1,0 +1,134 @@
+import { createI18n } from 'vue-i18n'
+
+const messages = {
+  en: {
+    app: {
+      checking_deps: 'Checking dependencies...',
+      missing_deps: 'Missing Dependencies',
+      deps_required: 'yt-dlp and FFmpeg are required to download and process videos.',
+      downloading: 'Downloading {binary}...',
+      download_install: 'Download and Install',
+      subtitle: 'Fast, modern, and cross-platform video downloader.',
+      tab_downloader: 'Downloader',
+      tab_settings: 'Settings',
+      settings_title: 'Application Settings',
+      settings_desc: 'Manage your preferences and app configuration.'
+    },
+    downloader: {
+      paste_link: 'Paste Video Link',
+      supported_sites: 'Supported sites: YouTube, Vimeo, and more ...',
+      fetch_details: 'Fetch Details',
+      quality: 'Quality',
+      highest_available: 'Highest Available',
+      remux: 'Remux (Best Video+Audio)',
+      mp4_format: 'MP4 Format',
+      audio_only: 'Audio Only (MP3/M4A)',
+      subtitles: 'Subtitles',
+      language: 'Language',
+      lang_en: 'English',
+      lang_de: 'German',
+      lang_fr: 'French',
+      lang_es: 'Spanish',
+      start_download: 'Start Download',
+      recent_activity: 'Recent Activity',
+      session: 'Session | Sessions',
+      success: 'Success',
+      failed: 'Failed',
+      open_video: 'Open Video',
+      library: 'Library',
+      file: 'File | Files',
+      view_video: 'View Video'
+    },
+    settings: {
+      storage: 'Storage',
+      default_dir: 'Default Download Directory',
+      default_dir_placeholder: 'Default System Downloads Folder',
+      dir_hint: 'Videos will be saved directly to this path.',
+      appearance: 'Appearance',
+      theme_mode: 'Theme Mode',
+      app_language: 'Application Language',
+      select_theme: 'Select theme',
+      select_language: 'Select language',
+      light_mode: 'Light Mode',
+      dark_mode: 'Dark Mode',
+      system_default: 'System Default',
+      download_prefs: 'Download Preferences',
+      default_quality: 'Default Quality',
+      enable_subtitles: 'Enable Subtitles',
+      about: 'About Application',
+      version: 'Version {version} Stable',
+      desc: 'A cross-platform UI for the yt-dlp CLI. Built with Vue 3, Electron, and Tailwind CSS.',
+      developer: 'Developer',
+      visit_website: 'Visit Website'
+    }
+  },
+  de: {
+    app: {
+      checking_deps: 'Überprüfe Abhängigkeiten...',
+      missing_deps: 'Fehlende Abhängigkeiten',
+      deps_required: 'yt-dlp und FFmpeg werden benötigt, um Videos herunterzuladen.',
+      downloading: 'Lade {binary} herunter...',
+      download_install: 'Herunterladen und Installieren',
+      subtitle: 'Schneller, moderner und plattformübergreifender Video-Downloader.',
+      tab_downloader: 'Downloader',
+      tab_settings: 'Einstellungen',
+      settings_title: 'Anwendungseinstellungen',
+      settings_desc: 'Verwalten Sie Ihre Einstellungen und App-Konfiguration.'
+    },
+    downloader: {
+      paste_link: 'Video-Link einfügen',
+      supported_sites: 'Unterstützte Seiten: YouTube, Vimeo und mehr ...',
+      fetch_details: 'Details abrufen',
+      quality: 'Qualität',
+      highest_available: 'Höchste Verfügbare',
+      remux: 'Remux (Bestes Video+Audio)',
+      mp4_format: 'MP4 Format',
+      audio_only: 'Nur Audio (MP3/M4A)',
+      subtitles: 'Untertitel',
+      language: 'Sprache',
+      lang_en: 'Englisch',
+      lang_de: 'Deutsch',
+      lang_fr: 'Französisch',
+      lang_es: 'Spanisch',
+      start_download: 'Download starten',
+      recent_activity: 'Letzte Aktivität',
+      session: 'Sitzung | Sitzungen',
+      success: 'Erfolgreich',
+      failed: 'Fehlgeschlagen',
+      open_video: 'Video öffnen',
+      library: 'Bibliothek',
+      file: 'Datei | Dateien',
+      view_video: 'Video ansehen'
+    },
+    settings: {
+      storage: 'Speicherort',
+      default_dir: 'Standard-Download-Verzeichnis',
+      default_dir_placeholder: 'Standard-Download-Ordner des Systems',
+      dir_hint: 'Videos werden direkt in diesem Pfad gespeichert.',
+      appearance: 'Erscheinungsbild',
+      theme_mode: 'Design-Modus',
+      app_language: 'Anwendungssprache',
+      select_theme: 'Design auswählen',
+      select_language: 'Sprache auswählen',
+      light_mode: 'Heller Modus',
+      dark_mode: 'Dunkler Modus',
+      system_default: 'Systemstandard',
+      download_prefs: 'Download-Einstellungen',
+      default_quality: 'Standardqualität',
+      enable_subtitles: 'Untertitel aktivieren',
+      about: 'Über die Anwendung',
+      version: 'Version {version} Stable',
+      desc: 'Eine plattformübergreifende Benutzeroberfläche für yt-dlp. Erstellt mit Vue 3, Electron und Tailwind CSS.',
+      developer: 'Entwickler',
+      visit_website: 'Webseite besuchen'
+    }
+  }
+}
+
+export const i18n = createI18n({
+  legacy: false, // use Composition API
+  globalInjection: true,
+  locale: 'en', // default
+  fallbackLocale: 'en',
+  messages,
+})

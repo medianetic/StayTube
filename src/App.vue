@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,8 @@ const downloadingBinary = ref<string | null>(null)
 const downloadProgress = ref(0)
 
 const activeTab = ref('downloader')
+
+const { locale } = useI18n()
 
 const checkBinaries = async () => {
   checkingBinaries.value = true
@@ -37,7 +40,10 @@ const installBinaries = async () => {
   await checkBinaries()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  const lang = await window.api.getStoreValue('language') || 'en'
+  locale.value = lang
+
   checkBinaries()
   window.api.onBinaryProgress(({ progress }) => {
     downloadProgress.value = progress
@@ -48,7 +54,7 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-background text-foreground p-4">
     <div v-if="checkingBinaries" class="flex items-center justify-center h-[80vh]">
-      <p>Checking dependencies...</p>
+      <p>{{ $t('app.checking_deps') }}</p>
     </div>
 
     <div v-else-if="!binariesReady" class="flex items-center justify-center h-[80vh]">
@@ -56,20 +62,20 @@ onMounted(() => {
         <CardHeader>
           <CardTitle class="flex items-center gap-2">
             <AlertCircle class="text-destructive" />
-            Missing Dependencies
+            {{ $t('app.missing_deps') }}
           </CardTitle>
           <CardDescription>
-            yt-dlp and FFmpeg are required to download and process videos.
+            {{ $t('app.deps_required') }}
           </CardDescription>
         </CardHeader>
         <CardContent class="space-y-4">
           <div v-if="downloadingBinary" class="space-y-2">
-            <p class="text-sm">Downloading {{ downloadingBinary }}...</p>
+            <p class="text-sm">{{ $t('app.downloading', { binary: downloadingBinary }) }}</p>
             <Progress :model-value="downloadProgress" />
           </div>
           <Button v-else @click="installBinaries" class="w-full">
             <Download class="mr-2 h-4 w-4" />
-            Download and Install
+            {{ $t('app.download_install') }}
           </Button>
         </CardContent>
       </Card>
@@ -81,19 +87,19 @@ onMounted(() => {
           <Download class="h-10 w-10 text-primary" />
         </div>
         <h1 class="text-4xl font-extrabold tracking-tight">StayTube</h1>
-        <p class="text-muted-foreground mt-2">Fast, modern, and cross-platform video downloader.</p>
+        <p class="text-muted-foreground mt-2">{{ $t('app.subtitle') }}</p>
         <p class="text-xs text-muted-foreground/60 mt-1 font-medium">v{{ version }}</p>
       </div>
       
       <Tabs v-model="activeTab" class="w-full flex flex-col items-center">
         <TabsList class="mb-8">
-          <TabsTrigger value="downloader" class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all">Downloader</TabsTrigger>
+          <TabsTrigger value="downloader" class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all">{{ $t('app.tab_downloader') }}</TabsTrigger>
           <TabsTrigger 
             value="settings" 
             class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all"
             @pointerdown="activeTab === 'settings' ? (activeTab = 'downloader', $event.preventDefault()) : null"
           >
-            Settings
+            {{ $t('app.tab_settings') }}
           </TabsTrigger>
         </TabsList>
         
@@ -105,8 +111,8 @@ onMounted(() => {
           <div class="relative bg-card rounded-3xl border shadow-2xl overflow-hidden">
             <div class="flex items-center justify-between p-6 border-b bg-muted/30">
               <div>
-                <h2 class="text-2xl font-bold tracking-tight">Application Settings</h2>
-                <p class="text-sm text-muted-foreground">Manage your preferences and app configuration.</p>
+                <h2 class="text-2xl font-bold tracking-tight">{{ $t('app.settings_title') }}</h2>
+                <p class="text-sm text-muted-foreground">{{ $t('app.settings_desc') }}</p>
               </div>
               <Button 
                 variant="ghost" 

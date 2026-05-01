@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,6 +19,8 @@ interface DownloadItem {
   filePath?: string
   timestamp: Date
 }
+
+useI18n()
 
 const url = ref('')
 const loadingMetadata = ref(false)
@@ -153,9 +156,9 @@ onMounted(async () => {
       <CardHeader>
         <CardTitle class="text-xl flex items-center gap-2">
           <Youtube class="text-red-500 h-6 w-6" />
-          Paste Video Link
+          {{ $t('downloader.paste_link') }}
         </CardTitle>
-        <CardDescription>Supported sites: YouTube, Vimeo, Twitter, and 1000+ more.</CardDescription>
+        <CardDescription>{{ $t('downloader.supported_sites') }}</CardDescription>
       </CardHeader>
       <CardContent>
         <div class="relative group">
@@ -172,7 +175,7 @@ onMounted(async () => {
             class="absolute right-2 top-2 h-10 px-6 rounded-lg"
           >
             <Loader2 v-if="loadingMetadata" class="mr-2 h-4 w-4 animate-spin" />
-            <span v-else>Fetch Details</span>
+            <span v-else>{{ $t('downloader.fetch_details') }}</span>
           </Button>
         </div>
         <p v-if="error" class="text-destructive text-sm mt-3 flex items-center gap-2 animate-in slide-in-from-top-1">
@@ -203,36 +206,36 @@ onMounted(async () => {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-xl border border-border/50">
               <div class="space-y-3">
                 <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  <Settings2 class="h-3.5 w-3.5" /> Quality
+                  <Settings2 class="h-3.5 w-3.5" /> {{ $t('downloader.quality') }}
                 </div>
                 <Select v-model="selectedFormat">
                   <SelectTrigger class="bg-background border-none shadow-sm">
                     <SelectValue placeholder="Select quality" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="best">Highest Available</SelectItem>
-                    <SelectItem value="bestvideo+bestaudio">Remux (Best Video+Audio)</SelectItem>
-                    <SelectItem value="mp4">MP4 Format</SelectItem>
-                    <SelectItem value="bestaudio">Audio Only (MP3/M4A)</SelectItem>
+                    <SelectItem value="best">{{ $t('downloader.highest_available') }}</SelectItem>
+                    <SelectItem value="bestvideo+bestaudio">{{ $t('downloader.remux') }}</SelectItem>
+                    <SelectItem value="mp4">{{ $t('downloader.mp4_format') }}</SelectItem>
+                    <SelectItem value="bestaudio">{{ $t('downloader.audio_only') }}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    <Languages class="h-3.5 w-3.5" /> Subtitles
+                    <Languages class="h-3.5 w-3.5" /> {{ $t('downloader.subtitles') }}
                   </div>
                   <Switch v-model:checked="enableSubtitles" />
                 </div>
                 <Select v-model="selectedSubLang" :disabled="!enableSubtitles">
                   <SelectTrigger class="bg-background border-none shadow-sm disabled:opacity-40">
-                    <SelectValue placeholder="Language" />
+                    <SelectValue :placeholder="$t('downloader.language')" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="de">German</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
+                    <SelectItem value="en">{{ $t('downloader.lang_en') }}</SelectItem>
+                    <SelectItem value="de">{{ $t('downloader.lang_de') }}</SelectItem>
+                    <SelectItem value="fr">{{ $t('downloader.lang_fr') }}</SelectItem>
+                    <SelectItem value="es">{{ $t('downloader.lang_es') }}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -240,7 +243,7 @@ onMounted(async () => {
 
             <Button @click="startDownload" size="lg" class="w-full h-14 text-lg font-bold shadow-lg hover:shadow-primary/20 transition-all">
               <Download class="mr-2 h-5 w-5" />
-              Start Download
+              {{ $t('downloader.start_download') }}
             </Button>
           </div>
         </div>
@@ -250,9 +253,9 @@ onMounted(async () => {
     <!-- Download Queue Section -->
     <div v-if="activeDownloads.length > 0" class="space-y-4 pt-4">
       <div class="flex items-center justify-between px-1">
-        <h3 class="text-lg font-bold tracking-tight">Recent Activity</h3>
+        <h3 class="text-lg font-bold tracking-tight">{{ $t('downloader.recent_activity') }}</h3>
         <span class="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-          {{ activeDownloads.length }} Session{{ activeDownloads.length > 1 ? 's' : '' }}
+          {{ activeDownloads.length }} {{ $t('downloader.session', activeDownloads.length) }}
         </span>
       </div>
       
@@ -281,13 +284,13 @@ onMounted(async () => {
                       class="h-7 px-2 text-[10px] font-bold uppercase gap-1"
                       @click="openFile(download.filePath)"
                     >
-                      <PlayCircle class="h-3 w-3" /> Open Video
+                      <PlayCircle class="h-3 w-3" /> {{ $t('downloader.open_video') }}
                     </Button>
                     <div v-if="download.status === 'completed'" class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center uppercase">
-                      <CheckCircle2 class="h-3 w-3 mr-1" /> Success
+                      <CheckCircle2 class="h-3 w-3 mr-1" /> {{ $t('downloader.success') }}
                     </div>
                     <div v-else-if="download.status === 'error'" class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center uppercase">
-                      <AlertCircle class="h-3 w-3 mr-1" /> Failed
+                      <AlertCircle class="h-3 w-3 mr-1" /> {{ $t('downloader.failed') }}
                     </div>
                     <div v-else class="text-[10px] font-bold tabular-nums text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">
                       {{ Math.round(download.progress) }}%
@@ -320,9 +323,9 @@ onMounted(async () => {
     <!-- Library Section -->
     <div v-if="localVideos.length > 0" class="space-y-4 pt-4 pb-8">
       <div class="flex items-center justify-between px-1">
-        <h3 class="text-lg font-bold tracking-tight">Library</h3>
+        <h3 class="text-lg font-bold tracking-tight">{{ $t('downloader.library') }}</h3>
         <span class="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-          {{ localVideos.length }} File{{ localVideos.length > 1 ? 's' : '' }}
+          {{ localVideos.length }} {{ $t('downloader.file', localVideos.length) }}
         </span>
       </div>
       
@@ -349,7 +352,7 @@ onMounted(async () => {
                 class="shrink-0 h-9 px-4 rounded-full font-bold text-xs gap-2 hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
                 @click="openFile(video.path)"
               >
-                View Video
+                {{ $t('downloader.view_video') }}
               </Button>
             </div>
           </CardContent>
