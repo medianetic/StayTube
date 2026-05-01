@@ -2,16 +2,23 @@
 import { ref, onMounted, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { FolderOpen, Moon, Sun, Monitor, HardDrive, Palette, Info, ExternalLink, User } from 'lucide-vue-next'
+import { FolderOpen, Moon, Sun, Monitor, HardDrive, Palette, Info, ExternalLink, User, Settings2 } from 'lucide-vue-next'
 import { version } from '../../package.json'
 
 const downloadDir = ref('')
 const theme = ref('system')
+const defaultQuality = ref('best')
+const defaultSubtitles = ref(false)
+const defaultSubLang = ref('en')
 
 const loadSettings = async () => {
   downloadDir.value = await window.api.getStoreValue('downloadDir') || ''
   theme.value = await window.api.getStoreValue('theme') || 'system'
+  defaultQuality.value = await window.api.getStoreValue('defaultQuality') || 'best'
+  defaultSubtitles.value = await window.api.getStoreValue('defaultSubtitles') || false
+  defaultSubLang.value = await window.api.getStoreValue('defaultSubLang') || 'en'
   applyTheme(theme.value)
 }
 
@@ -38,6 +45,18 @@ const applyTheme = (t: string) => {
 watch(theme, async (newTheme) => {
   await window.api.setStoreValue('theme', newTheme)
   applyTheme(newTheme)
+})
+
+watch(defaultQuality, async (val) => {
+  await window.api.setStoreValue('defaultQuality', val)
+})
+
+watch(defaultSubtitles, async (val) => {
+  await window.api.setStoreValue('defaultSubtitles', val)
+})
+
+watch(defaultSubLang, async (val) => {
+  await window.api.setStoreValue('defaultSubLang', val)
 })
 
 const openExternal = (url: string) => {
@@ -104,6 +123,51 @@ onMounted(loadSettings)
               </SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download Preferences Section -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="bg-green-500/10 p-2 rounded-lg text-green-500">
+          <Settings2 class="h-5 w-5" />
+        </div>
+        <h3 class="text-lg font-bold">Download Preferences</h3>
+      </div>
+      <div class="pl-11 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Default Quality</label>
+            <Select v-model="defaultQuality">
+              <SelectTrigger class="bg-muted/50 border-none shadow-inner h-11">
+                <SelectValue placeholder="Select quality" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="best">Highest Available</SelectItem>
+                <SelectItem value="bestvideo+bestaudio">Remux (Best Video+Audio)</SelectItem>
+                <SelectItem value="mp4">MP4 Format</SelectItem>
+                <SelectItem value="bestaudio">Audio Only (MP3/M4A)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Enable Subtitles</label>
+              <Switch v-model:checked="defaultSubtitles" />
+            </div>
+            <Select v-model="defaultSubLang" :disabled="!defaultSubtitles">
+              <SelectTrigger class="bg-muted/50 border-none shadow-inner h-11 disabled:opacity-40">
+                <SelectValue placeholder="Language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="de">German</SelectItem>
+                <SelectItem value="fr">French</SelectItem>
+                <SelectItem value="es">Spanish</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
     </section>

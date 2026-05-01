@@ -71,6 +71,10 @@ StayTube is built using a modern frontend stack integrated with Electron.
 
 Contributions are welcome. Please feel free to submit a Pull Request or open an issue for feature requests and bug reports.
 
+## Author
+
+- **Nick Weschkalnies** - [@medianetic](https://github.com/medianetic) - [nick@weschkalnies.de](mailto:nick@weschkalnies.de)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

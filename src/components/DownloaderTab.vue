@@ -37,6 +37,16 @@ const formatFileSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
+const formatDate = (date: Date) => {
+  const d = new Date(date)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  const hours = String(d.getHours()).padStart(2, '0')
+  const minutes = String(d.getMinutes()).padStart(2, '0')
+  return `${day}.${month}.${year} ${hours}:${minutes}`
+}
+
 const loadLocalVideos = async () => {
   const videos = await window.api.listVideos()
   localVideos.value = videos
@@ -114,8 +124,19 @@ const openFile = (filePath?: string) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   loadLocalVideos()
+  
+  // Load default preferences
+  const defQuality = await window.api.getStoreValue('defaultQuality')
+  if (defQuality) selectedFormat.value = defQuality
+  
+  const defSubtitles = await window.api.getStoreValue('defaultSubtitles')
+  if (defSubtitles !== undefined) enableSubtitles.value = defSubtitles
+  
+  const defSubLang = await window.api.getStoreValue('defaultSubLang')
+  if (defSubLang) selectedSubLang.value = defSubLang
+
   window.api.onDownloadProgress(({ url, progress }) => {
     const item = activeDownloads.value.find(d => d.url === url)
     if (item) {
@@ -250,7 +271,7 @@ onMounted(() => {
                 <div class="flex justify-between items-center mb-1">
                   <div class="min-w-0 pr-4">
                     <p class="text-sm font-semibold truncate text-card-foreground">{{ download.title }}</p>
-                    <p class="text-[10px] text-muted-foreground font-medium">{{ download.timestamp.toLocaleString() }}</p>
+                    <p class="text-[10px] text-muted-foreground font-medium">{{ formatDate(download.timestamp) }}</p>
                   </div>
                   <div class="flex-shrink-0 flex items-center gap-2">
                     <Button 
@@ -318,7 +339,7 @@ onMounted(() => {
                   <div class="flex items-center gap-2 mt-0.5">
                     <p class="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{{ formatFileSize(video.size) }}</p>
                     <span class="text-muted-foreground/30 text-[10px]">•</span>
-                    <p class="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{{ new Date(video.mtime).toLocaleString() }}</p>
+                    <p class="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{{ formatDate(video.mtime) }}</p>
                   </div>
                 </div>
               </div>
