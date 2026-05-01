@@ -1,43 +1,76 @@
 # StayTube
 
-StayTube is a high-performance Electron frontend for `yt-dlp`, designed to provide a modern and user-friendly experience for downloading videos from YouTube and other supported platforms.
+StayTube is a modern, high-performance desktop application built with Electron and Vue 3 that serves as a powerful frontend for `yt-dlp`. It provides a streamlined, user-friendly interface for downloading videos and audio from YouTube and over 1,000 other supported platforms.
 
-## Features
+## Key Features
 
-- Modern UI built with Vue 3 and shadcn-vue.
-- Easy video and audio downloads using `yt-dlp`.
-- Metadata retrieval and quality selection.
-- Integrated settings management with `electron-store`.
+- **Broad Compatibility**: Leverage the power of `yt-dlp` to download from a vast range of websites beyond just YouTube.
+- **Modern User Experience**: A clean, responsive interface built with Vue 3, Tailwind CSS, and shadcn-vue components.
+- **Smart Quality Selection**: Choose between highest available quality, specific formats (MP4, MKV), or audio-only extraction.
+- **Automated Dependency Management**: StayTube automatically handles the setup and updates for `yt-dlp` and `FFmpeg` on first run.
+- **Subtitle Support**: Select and embed subtitles in multiple languages directly into your downloads.
+- **Integrated Library**: Track and manage your download history and local library directly within the application.
+- **Persistent Settings**: Custom download directories and preferences are managed via a secure local store.
+
+## Installation
+
+### Binary Downloads
+
+*Coming soon: Pre-built binaries for Windows, macOS, and Linux will be available in the Releases section.*
+
+### Building from Source
+
+To build StayTube manually, ensure you have [Node.js](https://nodejs.org/) (LTS) installed on your system.
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/staytube.git
+   cd staytube
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Build the application**
+   ```bash
+   # Build for your current platform
+   npm run build
+   ```
+
+The installer will be generated in the `release/` directory.
 
 ## Development
 
-### Prerequisites
+StayTube is built using a modern frontend stack integrated with Electron.
 
-- [Node.js](https://nodejs.org/) (latest LTS recommended)
-- [npm](https://www.npmjs.com/)
+### Tech Stack
 
-### Setup
+- **Framework**: Electron
+- **Frontend**: Vue 3 (Composition API)
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS & shadcn-vue
+- **Language**: TypeScript
+- **Storage**: electron-store
 
-```bash
-npm install
-```
+### Commands
 
-### Run in Development
+- `npm run dev`: Starts the Vite development server and launches the Electron application with hot-reload enabled.
+- `npm run build`: Compiles the frontend assets, transpiles the Electron main process, and packages the app using electron-builder.
+- `npm run preview`: Previews the production build of the frontend.
 
-```bash
-npm run dev
-```
+## Project Structure
 
-### Build for Production
+- `electron/`: Main process logic, IPC handlers, and binary management.
+- `src/`: Vue 3 renderer process (UI components, styling, and state).
+- `public/`: Static assets for the application.
+- `docs/`: Project planning and improvement documentation.
 
-```bash
-npm run build
-```
+## Contributing
 
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Contributions are welcome. Please feel free to submit a Pull Request or open an issue for feature requests and bug reports.
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
