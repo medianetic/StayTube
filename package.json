@@ -1,8 +1,8 @@
 {
-  "name": "electron-ytdownloader",
+  "name": "staytube",
   "private": true,
   "version": "1.0.0",
-  "description": "A high-performance Electron frontend for yt-dlp",
+  "description": "StayTube - A high-performance Electron frontend for yt-dlp",
   "author": "Nick Weschkalnies",
   "type": "module",
   "scripts": {

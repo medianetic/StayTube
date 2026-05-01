@@ -121,7 +121,7 @@ onMounted(loadSettings)
           <p class="text-sm font-medium text-foreground">yt-dlp Electron Frontend</p>
           <p class="text-xs text-muted-foreground mt-1">Version {{ version }} Stable</p>
           <p class="text-xs text-muted-foreground mt-3 leading-relaxed">
-            A high-performance, cross-platform UI for the yt-dlp CLI. Built with Vue 3, Electron, and Tailwind CSS.
+            A cross-platform UI for the yt-dlp CLI. Built with Vue 3, Electron, and Tailwind CSS.
           </p>
         </div>
 

@@ -80,7 +80,7 @@ onMounted(() => {
         <div class="bg-primary/10 p-4 rounded-2xl mb-4">
           <Download class="h-10 w-10 text-primary" />
         </div>
-        <h1 class="text-4xl font-extrabold tracking-tight">yt-dlp Downloader</h1>
+        <h1 class="text-4xl font-extrabold tracking-tight">StayTube</h1>
         <p class="text-muted-foreground mt-2">Fast, modern, and cross-platform video downloader.</p>
         <p class="text-xs text-muted-foreground/60 mt-1 font-medium">v{{ version }}</p>
       </div>
