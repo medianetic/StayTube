@@ -248,435 +248,441 @@ const setSortBy = (sort: 'date' | 'name' | 'size') => {
 </script>
 
 <template>
-  <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <!-- URL Input Section -->
-    <Card class="border-none shadow-xl bg-card/50 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle class="text-xl flex items-center gap-2">
-          <Youtube class="text-red-500 h-6 w-6" />
-          {{ $t('downloader.paste_link') }}
-        </CardTitle>
-        <CardDescription>{{ $t('downloader.supported_sites') }}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div class="relative group">
-          <Input 
-            v-model="url" 
-            placeholder="https://www.youtube.com/watch?v=..." 
-            class="h-14 pl-12 text-lg rounded-xl transition-all border-2 focus-visible:ring-offset-2 focus-visible:ring-primary/20"
-            @keyup.enter="fetchMetadata" 
-          />
-          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Button 
-            @click="fetchMetadata" 
-            :disabled="loadingMetadata || !url"
-            class="absolute right-2 top-2 h-10 px-6 rounded-lg"
-          >
-            <Loader2 v-if="loadingMetadata" class="mr-2 h-4 w-4 animate-spin" />
-            <span v-else>{{ $t('downloader.fetch_details') }}</span>
-          </Button>
-        </div>
-        <p v-if="error" class="text-destructive text-sm mt-3 flex items-center gap-2 animate-in slide-in-from-top-1">
-          <AlertCircle class="h-4 w-4" />
-          {{ error }}
-        </p>
-      </CardContent>
-    </Card>
-
-    <!-- Preview & Configuration Section -->
-    <div v-if="metadata" class="animate-in zoom-in-95 duration-300">
-      <Card class="overflow-hidden border-2 border-primary/10 shadow-2xl">
-        <div class="md:flex">
-          <div class="md:w-1/3 relative group">
-            <img :src="metadata.thumbnail" class="w-full h-full object-cover aspect-video md:aspect-auto" v-if="metadata.thumbnail" />
-            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-              <div class="bg-black/60 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold">
-                {{ metadata.duration_string }}
-              </div>
+  <div class="flex flex-col h-full overflow-hidden">
+    <!-- Fixed Top Section -->
+    <div class="flex-shrink-0 p-1 pb-4 space-y-4">
+      <!-- URL Input Section -->
+      <Card class="border-border/50 shadow-lg bg-card/60 backdrop-blur-md">
+        <CardContent class="p-3">
+          <div class="flex flex-col sm:flex-row items-center gap-2">
+            <div class="relative flex-1 w-full group">
+              <Input 
+                v-model="url" 
+                placeholder="https://www.youtube.com/watch?v=..." 
+                class="h-10 pl-10 text-xs rounded-xl transition-all border-none bg-muted/50 focus-visible:ring-1 focus-visible:ring-primary/30"
+                @keyup.enter="fetchMetadata" 
+              />
+              <Youtube class="absolute left-3.5 top-1/2 -translate-y-1/2 text-red-500 h-4 w-4" />
+              <button 
+                v-if="url" 
+                @click="url = ''" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X class="h-3.5 w-3.5" />
+              </button>
             </div>
-          </div>
-          <div class="md:w-2/3 p-6 flex flex-col justify-between space-y-6">
-            <div class="space-y-2">
-              <h3 class="text-2xl font-bold leading-tight">{{ metadata.title }}</h3>
-              <p class="text-muted-foreground font-medium">{{ metadata.uploader }}</p>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-xl border border-border/50">
-              <div class="space-y-3">
-                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  <Settings2 class="h-3.5 w-3.5" /> {{ $t('downloader.quality') }}
-                </div>
-                <Select v-model="selectedFormat">
-                  <SelectTrigger class="bg-background border-none shadow-sm">
-                    <SelectValue placeholder="Select quality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="best">{{ $t('downloader.highest_available') }}</SelectItem>
-                    <SelectItem value="bestvideo+bestaudio">{{ $t('downloader.remux') }}</SelectItem>
-                    <SelectItem value="mp4">{{ $t('downloader.mp4_format') }}</SelectItem>
-                    <SelectItem value="bestaudio">{{ $t('downloader.audio_only') }}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div class="space-y-3">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    <Languages class="h-3.5 w-3.5" /> {{ $t('downloader.subtitles') }}
-                  </div>
-                  <Switch v-model:checked="enableSubtitles" />
-                </div>
-                <Select v-model="selectedSubLang" :disabled="!enableSubtitles">
-                  <SelectTrigger class="bg-background border-none shadow-sm disabled:opacity-40">
-                    <SelectValue :placeholder="$t('downloader.language')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">{{ $t('downloader.lang_en') }}</SelectItem>
-                    <SelectItem value="de">{{ $t('downloader.lang_de') }}</SelectItem>
-                    <SelectItem value="fr">{{ $t('downloader.lang_fr') }}</SelectItem>
-                    <SelectItem value="es">{{ $t('downloader.lang_es') }}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <Button @click="startDownload" size="lg" class="w-full h-14 text-lg font-bold shadow-lg hover:shadow-primary/20 transition-all">
-              <Download class="mr-2 h-5 w-5" />
-              {{ $t('downloader.start_download') }}
+            <Button 
+              @click="fetchMetadata" 
+              :disabled="loadingMetadata || !url"
+              class="h-10 px-5 rounded-xl w-full sm:w-auto font-bold text-[10px] uppercase tracking-widest shadow-sm"
+            >
+              <Loader2 v-if="loadingMetadata" class="mr-2 h-3.5 w-3.5 animate-spin" />
+              <Search v-else class="mr-2 h-3.5 w-3.5" />
+              {{ loadingMetadata ? 'Fetching...' : $t('downloader.fetch_details') }}
             </Button>
           </div>
-        </div>
+          <p v-if="error" class="text-destructive text-[10px] mt-2 flex items-center gap-1.5 animate-in slide-in-from-top-1 font-bold pl-1 uppercase tracking-tighter">
+            <AlertCircle class="h-3.5 w-3.5" />
+            {{ error }}
+          </p>
+        </CardContent>
       </Card>
-    </div>
 
-    <!-- Download Queue Section -->
-    <div v-if="activeDownloads.length > 0" class="space-y-4 pt-4">
-      <div class="flex items-center justify-between px-1">
-        <h3 class="text-lg font-bold tracking-tight">{{ $t('downloader.recent_activity') }}</h3>
-        <span class="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-          {{ activeDownloads.length }} {{ $t('downloader.session', activeDownloads.length) }}
-        </span>
-      </div>
-      
-      <div class="grid gap-3">
-        <Card v-for="download in activeDownloads" :key="download.url" class="overflow-hidden hover:border-primary/20 transition-colors border-transparent shadow-md">
-          <CardContent class="p-3">
-            <div class="flex items-center gap-4">
-              <div class="relative w-24 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                <img :src="download.thumbnail" class="w-full h-full object-cover" v-if="download.thumbnail" />
-                <div v-if="download.status === 'downloading'" class="absolute inset-0 bg-black/40 flex items-center justify-center">
-                  <Loader2 class="h-5 w-5 text-white animate-spin" />
+      <!-- Preview & Configuration Section -->
+      <div v-if="metadata" class="animate-in zoom-in-95 duration-300">
+        <Card class="overflow-hidden border border-primary/15 shadow-2xl bg-card/40 backdrop-blur-xl">
+          <div class="flex flex-col md:flex-row">
+            <div class="md:w-1/4 relative group shrink-0">
+              <img :src="metadata.thumbnail" class="w-full h-full object-cover aspect-video md:aspect-auto" v-if="metadata.thumbnail" />
+              <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <div class="bg-black/60 backdrop-blur-md text-white px-2 py-0.5 rounded text-[10px] font-bold border border-border/50">
+                  {{ metadata.duration_string }}
                 </div>
-              </div>
-              
-              <div class="flex-1 min-w-0 flex flex-col justify-center">
-                <div class="flex justify-between items-center mb-1">
-                  <div class="min-w-0 pr-4">
-                    <p class="text-sm font-semibold truncate text-card-foreground">{{ download.title }}</p>
-                    <p class="text-[10px] text-muted-foreground font-medium">{{ formatDate(download.timestamp) }}</p>
-                  </div>
-                  <div class="flex-shrink-0 flex items-center gap-2">
-                    <Tooltip v-if="download.status === 'completed'">
-                      <TooltipTrigger as-child>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          class="h-7 w-7 rounded-md"
-                          @click="openFolder(download.filePath)"
-                        >
-                          <Folder class="h-3.5 w-3.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p class="text-[10px]">{{ $t('downloader.open_folder') }}</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    <Button 
-                      v-if="download.status === 'completed'" 
-                      variant="outline" 
-                      size="sm" 
-                      class="h-7 px-2 text-[10px] font-bold uppercase gap-1"
-                      @click="openFile(download.filePath)"
-                    >
-                      <PlayCircle class="h-3 w-3" /> {{ $t('downloader.open_video') }}
-                    </Button>
-                    <div v-if="download.status === 'completed'" class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center uppercase">
-                      <CheckCircle2 class="h-3 w-3 mr-1" /> {{ $t('downloader.success') }}
-                    </div>
-                    <div v-else-if="download.status === 'error'" class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center uppercase">
-                      <AlertCircle class="h-3 w-3 mr-1" /> {{ $t('downloader.failed') }}
-                    </div>
-                    <div v-else class="text-[10px] font-bold tabular-nums text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase">
-                      {{ Math.round(download.progress) }}%
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="relative">
-                  <Progress 
-                    :model-value="download.progress" 
-                    class="h-2 rounded-full bg-muted shadow-inner" 
-                    :class="{ 'bg-green-500/20': download.status === 'completed', 'bg-red-500/20': download.status === 'error' }" 
-                  />
-                  <div 
-                    v-if="download.status === 'downloading'"
-                    class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"
-                  ></div>
-                </div>
-                
-                <p v-if="download.error" class="text-[10px] text-destructive mt-1.5 font-medium flex items-center gap-1">
-                  <AlertCircle class="h-2.5 w-2.5" /> {{ download.error }}
-                </p>
               </div>
             </div>
-          </CardContent>
+            <div class="md:w-3/4 p-5 flex flex-col justify-between space-y-5">
+              <div class="space-y-1.5">
+                <h3 class="text-xl font-bold leading-tight line-clamp-2 tracking-tight" :title="metadata.title">{{ metadata.title }}</h3>
+                <p class="text-[11px] text-muted-foreground font-bold uppercase tracking-wider">{{ metadata.uploader }}</p>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 bg-muted/40 rounded-xl border border-border/50">
+                <div class="space-y-2">
+                  <div class="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                    <Settings2 class="h-3 w-3" /> {{ $t('downloader.quality') }}
+                  </div>
+                  <Select v-model="selectedFormat">
+                    <SelectTrigger class="bg-background/50 border-none shadow-sm h-9 text-xs font-medium rounded-lg">
+                      <SelectValue placeholder="Select quality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="best">{{ $t('downloader.highest_available') }}</SelectItem>
+                      <SelectItem value="bestvideo+bestaudio">{{ $t('downloader.remux') }}</SelectItem>
+                      <SelectItem value="mp4">{{ $t('downloader.mp4_format') }}</SelectItem>
+                      <SelectItem value="bestaudio">{{ $t('downloader.audio_only') }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                      <Languages class="h-3 w-3" /> {{ $t('downloader.subtitles') }}
+                    </div>
+                    <Switch v-model:checked="enableSubtitles" class="scale-75 origin-right" />
+                  </div>
+                  <Select v-model="selectedSubLang" :disabled="!enableSubtitles">
+                    <SelectTrigger class="bg-background/50 border-none shadow-sm h-9 text-xs font-medium rounded-lg disabled:opacity-40">
+                      <SelectValue :placeholder="$t('downloader.language')" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">{{ $t('downloader.lang_en') }}</SelectItem>
+                      <SelectItem value="de">{{ $t('downloader.lang_de') }}</SelectItem>
+                      <SelectItem value="fr">{{ $t('downloader.lang_fr') }}</SelectItem>
+                      <SelectItem value="es">{{ $t('downloader.lang_es') }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Button @click="startDownload" size="lg" class="w-full h-12 text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 transition-all rounded-xl">
+                <Download class="mr-2 h-4 w-4" />
+                {{ $t('downloader.start_download') }}
+              </Button>
+            </div>
+          </div>
         </Card>
       </div>
     </div>
 
-    <!-- Library Section -->
-    <div v-if="localVideos.length > 0" class="space-y-6 pt-4 pb-12">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
-        <div class="flex items-center gap-3">
-          <h3 class="text-xl font-bold tracking-tight">{{ $t('downloader.library') }}</h3>
-          <span class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/10">
-            {{ localVideos.length }}
+    <!-- Scrollable Content Section -->
+    <div class="flex-1 overflow-y-auto p-1 pr-2 pb-8 space-y-4">
+      <!-- Download Queue Section -->
+      <div v-if="activeDownloads.length > 0" class="space-y-3 pt-2">
+        <div class="flex items-center justify-between px-1">
+          <h3 class="text-[10px] font-black tracking-[0.2em] text-muted-foreground/60 uppercase">{{ $t('downloader.recent_activity') }}</h3>
+          <span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/10">
+            {{ activeDownloads.length }}
           </span>
         </div>
+        
+        <div class="grid gap-2">
+          <Card v-for="download in activeDownloads" :key="download.url" class="overflow-hidden hover:bg-muted/30 transition-colors border-border/50 shadow-sm bg-card/40">
+            <CardContent class="p-2.5">
+              <div class="flex items-center gap-3">
+                <div class="relative w-20 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-muted border border-border/50">
+                  <img :src="download.thumbnail" class="w-full h-full object-cover" v-if="download.thumbnail" />
+                  <div v-if="download.status === 'downloading'" class="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <Loader2 class="h-4 w-4 text-white animate-spin" />
+                  </div>
+                </div>
+                
+                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                  <div class="flex justify-between items-center mb-1.5">
+                    <div class="min-w-0 pr-4">
+                      <p class="text-[11px] font-bold truncate text-foreground tracking-tight">{{ download.title }}</p>
+                      <p class="text-[9px] text-muted-foreground/70 font-bold uppercase tracking-tighter">{{ formatDate(download.timestamp) }}</p>
+                    </div>
+                    <div class="flex-shrink-0 flex items-center gap-1.5">
+                      <Tooltip v-if="download.status === 'completed'">
+                        <TooltipTrigger as-child>
+                          <Button 
+                            variant="secondary" 
+                            size="icon" 
+                            class="h-7 w-7 rounded-lg bg-muted/50"
+                            @click="openFolder(download.filePath)"
+                          >
+                            <Folder class="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p class="text-[10px]">{{ $t('downloader.open_folder') }}</p>
+                        </TooltipContent>
+                      </Tooltip>
 
-        <div class="flex items-center gap-2">
-          <!-- Search Input -->
-          <div class="relative w-full md:w-64 group">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input 
-              v-model="searchQuery" 
-              :placeholder="$t('downloader.search_library')" 
-              class="h-10 pl-9 pr-8 bg-muted/40 border-none focus-visible:ring-1 focus-visible:ring-primary/30"
-            />
-            <button 
-              v-if="searchQuery" 
-              @click="searchQuery = ''" 
-              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X class="h-4 w-4" />
-            </button>
-          </div>
-
-          <!-- Sort Dropdown -->
-          <DropdownMenu>
-            <DropdownMenuTrigger as-child>
-              <Button variant="outline" size="icon" class="h-10 w-10 shrink-0 bg-muted/20 border-none">
-                <Filter class="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" class="w-48">
-              <DropdownMenuLabel>{{ $t('downloader.sort_by') }}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem @click="setSortBy('date')" :class="{ 'bg-primary/10 text-primary': sortBy === 'date' }">
-                <Clock class="mr-2 h-4 w-4" /> {{ $t('downloader.sort_date') }}
-              </DropdownMenuItem>
-              <DropdownMenuItem @click="setSortBy('name')" :class="{ 'bg-primary/10 text-primary': sortBy === 'name' }">
-                <ArrowUpDown class="mr-2 h-4 w-4" /> {{ $t('downloader.sort_name') }}
-              </DropdownMenuItem>
-              <DropdownMenuItem @click="setSortBy('size')" :class="{ 'bg-primary/10 text-primary': sortBy === 'size' }">
-                <HardDrive class="mr-2 h-4 w-4" /> {{ $t('downloader.sort_size') }}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <!-- View Toggle -->
-          <div class="flex items-center bg-muted/40 p-1 rounded-lg">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              class="h-8 w-8 rounded-md transition-all"
-              :class="{ 'bg-background shadow-sm text-primary': viewMode === 'detailed' }"
-              @click="setViewMode('detailed')"
-            >
-              <LayoutGrid class="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              class="h-8 w-8 rounded-md transition-all"
-              :class="{ 'bg-background shadow-sm text-primary': viewMode === 'compact' }"
-              @click="setViewMode('compact')"
-            >
-              <List class="h-4 w-4" />
-            </Button>
-          </div>
+                      <Button 
+                        v-if="download.status === 'completed'" 
+                        variant="secondary" 
+                        size="sm" 
+                        class="h-7 px-2.5 text-[9px] font-black uppercase tracking-widest gap-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border-none"
+                        @click="openFile(download.filePath)"
+                      >
+                        <PlayCircle class="h-3 w-3" /> {{ $t('downloader.view_video_short') }}
+                      </Button>
+                      <div v-if="download.status === 'completed'" class="bg-green-500/10 text-green-500 text-[9px] font-black px-2 py-1 rounded-lg flex items-center uppercase tracking-widest">
+                        <CheckCircle2 class="h-3 w-3 mr-1" />
+                      </div>
+                      <div v-else-if="download.status === 'error'" class="bg-destructive/10 text-destructive text-[9px] font-black px-2 py-1 rounded-lg flex items-center uppercase tracking-widest">
+                        <AlertCircle class="h-3 w-3 mr-1" />
+                      </div>
+                      <div v-else class="text-[10px] font-black tabular-nums text-primary bg-primary/10 px-2 py-1 rounded-lg tracking-tight">
+                        {{ Math.round(download.progress) }}%
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="relative">
+                    <Progress 
+                      :model-value="download.progress" 
+                      class="h-1.5 rounded-full bg-muted/50 overflow-hidden" 
+                      :class="{ 'bg-green-500/20': download.status === 'completed', 'bg-red-500/20': download.status === 'error' }" 
+                    />
+                    <div 
+                      v-if="download.status === 'downloading'"
+                      class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"
+                    ></div>
+                  </div>
+                  
+                  <p v-if="download.error" class="text-[9px] text-destructive mt-1 font-bold uppercase tracking-tighter flex items-center gap-1">
+                    <AlertCircle class="h-2.5 w-2.5" /> {{ download.error }}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-      
-      <!-- Grid View (Detailed) -->
-      <div v-if="viewMode === 'detailed'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-        <Card v-for="video in filteredVideos" :key="video.path" class="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 bg-card/40 backdrop-blur-sm">
-          <CardContent class="p-0">
-            <div class="flex flex-col h-full">
-              <!-- Thumbnail Wrapper with Padding -->
-              <div class="p-3 pb-0">
-                <div class="relative aspect-video bg-muted/30 overflow-hidden cursor-pointer rounded-xl border border-border/50 shadow-inner group-hover:border-primary/30 transition-colors" @click="openFile(video.path)">
-                  <img v-if="video.thumbnail" :src="video.thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+
+      <!-- Library Section -->
+      <div v-if="localVideos.length > 0" class="space-y-4 pt-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 px-1">
+          <div class="flex items-center gap-3">
+            <h3 class="text-sm font-black tracking-[0.2em] text-muted-foreground uppercase">{{ $t('downloader.library') }}</h3>
+            <span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-border/10 shadow-sm">
+              {{ localVideos.length }}
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- Search Input -->
+            <div class="relative w-full md:w-56 group">
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 group-focus-within:text-primary transition-colors" />
+              <Input 
+                v-model="searchQuery" 
+                :placeholder="$t('downloader.search_library')" 
+                class="h-9 pl-9 pr-8 bg-muted/30 border-none text-xs rounded-lg focus-visible:ring-1 focus-visible:ring-primary/20 shadow-inner"
+              />
+              <button 
+                v-if="searchQuery" 
+                @click="searchQuery = ''" 
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-foreground transition-colors"
+              >
+                <X class="h-3 w-3" />
+              </button>
+            </div>
+
+            <!-- Sort Dropdown -->
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <Button variant="secondary" size="icon" class="h-9 w-9 shrink-0 bg-muted/30 border-none rounded-lg hover:bg-muted/50">
+                  <Filter class="h-3.5 w-3.5 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" class="w-48 rounded-xl border-border/50 bg-card/95 backdrop-blur-xl">
+                <DropdownMenuLabel class="text-[10px] font-black uppercase tracking-widest opacity-50">{{ $t('downloader.sort_by') }}</DropdownMenuLabel>
+                <DropdownMenuSeparator class="bg-white/5" />
+                <DropdownMenuItem @click="setSortBy('date')" :class="{ 'bg-primary/10 text-primary': sortBy === 'date' }" class="text-xs font-bold rounded-lg m-1">
+                  <Clock class="mr-2 h-3.5 w-3.5" /> {{ $t('downloader.sort_date') }}
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="setSortBy('name')" :class="{ 'bg-primary/10 text-primary': sortBy === 'name' }" class="text-xs font-bold rounded-lg m-1">
+                  <ArrowUpDown class="mr-2 h-3.5 w-3.5" /> {{ $t('downloader.sort_name') }}
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="setSortBy('size')" :class="{ 'bg-primary/10 text-primary': sortBy === 'size' }" class="text-xs font-bold rounded-lg m-1">
+                  <HardDrive class="mr-2 h-3.5 w-3.5" /> {{ $t('downloader.sort_size') }}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <!-- View Toggle -->
+            <div class="flex items-center bg-muted/30 p-1 rounded-lg shadow-inner">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                class="h-7 w-7 rounded-md transition-all"
+                :class="{ 'bg-background shadow-sm text-primary': viewMode === 'detailed' }"
+                @click="setViewMode('detailed')"
+              >
+                <LayoutGrid class="h-3.5 w-3.5" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                class="h-7 w-7 rounded-md transition-all"
+                :class="{ 'bg-background shadow-sm text-primary': viewMode === 'compact' }"
+                @click="setViewMode('compact')"
+              >
+                <List class="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Grid View (Detailed) -->
+        <div v-if="viewMode === 'detailed'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card v-for="video in filteredVideos" :key="video.path" class="group overflow-hidden border-border/50 shadow-sm hover:shadow-xl transition-all duration-500 bg-card/40 backdrop-blur-md">
+            <CardContent class="p-3">
+              <div class="flex flex-col h-full">
+                <!-- Thumbnail Wrapper -->
+                <div class="relative aspect-video bg-muted/20 overflow-hidden cursor-pointer rounded-xl border border-border/50" @click="openFile(video.path)">
+                  <img v-if="video.thumbnail" :src="video.thumbnail" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   <div v-else class="w-full h-full flex items-center justify-center">
-                    <PlayCircle class="h-12 w-12 text-muted-foreground/10" />
+                    <PlayCircle class="h-10 w-10 text-muted-foreground/10" />
                   </div>
                   
                   <!-- Duration Badge -->
-                  <div class="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[9px] font-bold text-white tracking-wider border border-white/10">
+                  <div class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-md text-[9px] font-black text-white tracking-widest border border-border/50 uppercase">
                     {{ formatDuration(video.duration) }}
                   </div>
 
                   <!-- Hover Overlay -->
-                  <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div class="bg-primary text-primary-foreground p-3 rounded-full shadow-2xl scale-90 group-hover:scale-100 transition-transform">
+                  <div class="absolute inset-0 bg-primary/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div class="bg-primary text-primary-foreground p-3 rounded-full shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300">
                       <PlayCircle class="h-6 w-6" />
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Content Wrapper -->
-              <div class="p-5 pt-4 flex flex-col justify-between flex-1 space-y-4">
-                <div class="space-y-2">
-                  <p class="text-sm font-bold line-clamp-2 text-foreground leading-snug h-10" :title="video.name">{{ video.name }}</p>
-                  <div class="flex items-center gap-3 text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-                    <span class="flex items-center gap-1.5"><HardDrive class="h-3 w-3" /> {{ formatFileSize(video.size) }}</span>
-                    <span class="opacity-30">•</span>
-                    <span class="flex items-center gap-1.5"><Clock class="h-3 w-3" /> {{ formatDate(video.mtime) }}</span>
+                <!-- Content Wrapper -->
+                <div class="pt-3 px-1 flex flex-col justify-between flex-1 space-y-3">
+                  <div class="space-y-1">
+                    <p class="text-[13px] font-bold line-clamp-1 text-foreground tracking-tight" :title="video.name">{{ video.name }}</p>
+                    <div class="flex items-center gap-2.5 text-[9px] text-muted-foreground/70 font-black uppercase tracking-widest">
+                      <span class="flex items-center gap-1"><HardDrive class="h-2.5 w-2.5 opacity-50" /> {{ formatFileSize(video.size) }}</span>
+                      <span class="opacity-20">•</span>
+                      <span class="flex items-center gap-1"><Clock class="h-2.5 w-2.5 opacity-50" /> {{ formatDate(video.mtime) }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Action Bar -->
+                  <div class="flex items-center justify-between pt-3 border-t border-border/50">
+                    <div class="flex items-center gap-1">
+                      <Tooltip>
+                        <TooltipTrigger as-child>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            class="h-8 w-8 rounded-lg hover:bg-primary/10 text-primary transition-all active:scale-90" 
+                            @click="openFile(video.path)"
+                          >
+                            <PlayCircle class="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p class="text-[10px] font-bold uppercase tracking-widest">{{ $t('downloader.view_video') }}</p></TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger as-child>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            class="h-8 w-8 rounded-lg hover:bg-muted text-muted-foreground/70 hover:text-foreground transition-all active:scale-90" 
+                            @click="openFolder(video.path)"
+                          >
+                            <Folder class="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p class="text-[10px] font-bold uppercase tracking-widest">{{ $t('downloader.open_folder') }}</p></TooltipContent>
+                      </Tooltip>
+                    </div>
+
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          class="h-8 w-8 rounded-lg hover:bg-destructive/10 text-muted-foreground/50 hover:text-destructive transition-all active:scale-90" 
+                          @click="confirmDelete(video)"
+                        >
+                          <Trash2 class="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p class="text-[10px] font-bold uppercase tracking-widest">{{ $t('downloader.delete_video') }}</p></TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-                <!-- Action Bar -->
-                <div class="grid grid-cols-3 gap-1 pt-4 border-t border-border/40">
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <button 
-                        class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 text-primary transition-all active:scale-95 group/btn" 
-                        @click="openFile(video.path)"
-                      >
-                        <div class="p-2 rounded-lg bg-primary/10 group-hover/btn:bg-primary group-hover/btn:text-primary-foreground transition-colors">
-                          <PlayCircle class="h-4 w-4" />
-                        </div>
-                        <span class="text-[9px] font-bold uppercase tracking-tighter opacity-80">{{ $t('downloader.view_video_short') }}</span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent><p class="text-[10px]">{{ $t('downloader.view_video') }}</p></TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <button 
-                        class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-95 group/btn" 
-                        @click="openFolder(video.path)"
-                      >
-                        <div class="p-2 rounded-lg bg-muted group-hover/btn:bg-foreground group-hover/btn:text-background transition-colors">
-                          <Folder class="h-4 w-4" />
-                        </div>
-                        <span class="text-[9px] font-bold uppercase tracking-tighter opacity-80">{{ $t('downloader.open_folder_short') }}</span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent><p class="text-[10px]">{{ $t('downloader.open_folder') }}</p></TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger as-child>
-                      <button 
-                        class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all active:scale-95 group/btn" 
-                        @click="confirmDelete(video)"
-                      >
-                        <div class="p-2 rounded-lg bg-muted group-hover/btn:bg-destructive group-hover/btn:text-destructive-foreground transition-colors">
-                          <Trash2 class="h-4 w-4" />
-                        </div>
-                        <span class="text-[9px] font-bold uppercase tracking-tighter opacity-80">{{ $t('downloader.delete_video_short') }}</span>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent><p class="text-[10px]">{{ $t('downloader.delete_video') }}</p></TooltipContent>
-                  </Tooltip>
+        <!-- List View (Compact) -->
+        <div v-else class="space-y-1.5">
+          <div v-for="video in filteredVideos" :key="video.path" class="group flex items-center justify-between p-2 pl-3 pr-2 bg-card/40 hover:bg-muted/30 rounded-xl border border-border/50 transition-all duration-300">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="bg-primary/10 p-1.5 rounded-lg text-primary shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                <PlayCircle class="h-3.5 w-3.5" />
+              </div>
+              <div class="min-w-0">
+                <p class="text-[11px] font-bold truncate text-foreground pr-4" :title="video.name">{{ video.name }}</p>
+                <div class="flex items-center gap-2.5 mt-0.5 opacity-50 text-[8px] font-black uppercase tracking-widest">
+                  <span class="flex items-center gap-1"><HardDrive class="h-2 w-2" /> {{ formatFileSize(video.size) }}</span>
+                  <span class="opacity-30">•</span>
+                  <span class="flex items-center gap-1"><Clock class="h-2 w-2" /> {{ formatDate(video.mtime) }}</span>
+                  <span v-if="video.duration" class="opacity-30">•</span>
+                  <span v-if="video.duration">{{ formatDuration(video.duration) }}</span>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      <!-- List View (Compact) -->
-      <div v-else class="space-y-2">
-        <div v-for="video in filteredVideos" :key="video.path" class="group flex items-center justify-between p-2.5 pl-4 pr-3 bg-card/40 hover:bg-muted/40 rounded-xl border border-border/50 transition-all duration-200">
-          <div class="flex items-center gap-4 min-w-0">
-            <div class="bg-primary/10 p-2 rounded-lg text-primary shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-              <PlayCircle class="h-4 w-4" />
-            </div>
-            <div class="min-w-0">
-              <p class="text-xs font-bold truncate text-foreground pr-4" :title="video.name">{{ video.name }}</p>
-              <div class="flex items-center gap-3 mt-1 opacity-60 text-[9px] font-bold uppercase tracking-widest">
-                <span class="flex items-center gap-1"><HardDrive class="h-2.5 w-2.5" /> {{ formatFileSize(video.size) }}</span>
-                <span class="text-muted-foreground/30">•</span>
-                <span class="flex items-center gap-1"><Clock class="h-2.5 w-2.5" /> {{ formatDate(video.mtime) }}</span>
-                <span v-if="video.duration" class="text-muted-foreground/30">•</span>
-                <span v-if="video.duration">{{ formatDuration(video.duration) }}</span>
-              </div>
+            <div class="flex items-center gap-1 shrink-0 ml-4">
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button variant="ghost" size="icon" class="h-7 w-7 rounded-lg hover:bg-muted" @click="openFolder(video.path)">
+                    <Folder class="h-3.5 w-3.5 opacity-60" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent><p class="text-[9px] font-black uppercase tracking-widest">{{ $t('downloader.open_folder') }}</p></TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button variant="ghost" size="icon" class="h-7 w-7 rounded-lg hover:bg-destructive/10 hover:text-destructive" @click="confirmDelete(video)">
+                    <Trash2 class="h-3.5 w-3.5 opacity-40 hover:opacity-100" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent><p class="text-[9px] font-black uppercase tracking-widest">{{ $t('downloader.delete_video') }}</p></TooltipContent>
+              </Tooltip>
+              
+              <Button variant="secondary" size="sm" class="h-7 px-3 font-black text-[9px] uppercase gap-1.5 shadow-sm rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border-none ml-1" @click="openFile(video.path)">
+                <PlayCircle class="h-3 w-3" /> {{ $t('downloader.view_video_short') }}
+              </Button>
             </div>
           </div>
+        </div>
 
-          <div class="flex items-center gap-1.5 shrink-0 ml-4">
-             <Tooltip>
-              <TooltipTrigger as-child>
-                <Button variant="ghost" size="icon" class="h-9 w-9 rounded-lg hover:bg-primary/10 hover:text-primary" @click="openFolder(video.path)">
-                  <Folder class="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent><p class="text-[10px]">{{ $t('downloader.open_folder') }}</p></TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button variant="ghost" size="icon" class="h-9 w-9 rounded-lg hover:bg-destructive/10 hover:text-destructive" @click="confirmDelete(video)">
-                  <Trash2 class="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent><p class="text-[10px]">{{ $t('downloader.delete_video') }}</p></TooltipContent>
-            </Tooltip>
-            
-            <Button variant="secondary" size="sm" class="h-9 px-4 font-bold text-[10px] uppercase gap-2 shadow-sm rounded-lg" @click="openFile(video.path)">
-              <PlayCircle class="h-3.5 w-3.5" /> {{ $t('downloader.view_video_short') }}
-            </Button>
+        <!-- Empty Search State -->
+        <div v-if="filteredVideos.length === 0 && searchQuery" class="flex flex-col items-center justify-center py-20 text-muted-foreground animate-in fade-in zoom-in-95">
+          <div class="bg-muted/30 p-4 rounded-full mb-4">
+            <Search class="h-8 w-8 opacity-10" />
           </div>
+          <p class="text-xs font-black uppercase tracking-widest opacity-40">{{ $t('downloader.no_results') }}</p>
+          <Button variant="link" size="sm" class="mt-2 text-primary font-bold text-xs" @click="searchQuery = ''">
+            {{ $t('downloader.clear_search') }}
+          </Button>
         </div>
-      </div>
-
-      <!-- Empty Search State -->
-      <div v-if="filteredVideos.length === 0 && searchQuery" class="flex flex-col items-center justify-center py-20 text-muted-foreground animate-in fade-in zoom-in-95">
-        <div class="bg-muted p-4 rounded-full mb-4">
-          <Search class="h-8 w-8 opacity-20" />
-        </div>
-        <p class="text-sm font-medium">{{ $t('downloader.no_results') }}</p>
-        <Button variant="link" size="sm" class="mt-2 text-primary" @click="searchQuery = ''">
-          {{ $t('downloader.clear_search') }}
-        </Button>
       </div>
     </div>
 
     <!-- Delete Confirmation Dialog -->
     <Dialog :open="!!videoToDelete" @update:open="(val) => !val && (videoToDelete = null)">
-      <DialogContent class="sm:max-w-md rounded-3xl">
+      <DialogContent class="sm:max-w-md rounded-3xl bg-card/95 backdrop-blur-2xl border-border/50">
         <DialogHeader>
-          <DialogTitle class="text-xl font-bold flex items-center gap-2">
+          <DialogTitle class="text-lg font-black uppercase tracking-widest flex items-center gap-2.5">
             <AlertCircle class="h-5 w-5 text-destructive" />
             {{ $t('downloader.delete_confirm_title') }}
           </DialogTitle>
-          <DialogDescription class="pt-2">
-            {{ $t('downloader.delete_confirm_desc') }}
-            <p class="mt-3 p-3 bg-muted rounded-xl text-xs font-mono break-all text-foreground border border-border/50">
+          <DialogDescription class="pt-3">
+            <span class="text-xs font-bold text-muted-foreground/80 leading-relaxed">{{ $t('downloader.delete_confirm_desc') }}</span>
+            <p class="mt-4 p-3.5 bg-muted/50 rounded-2xl text-[10px] font-bold break-all text-foreground border border-border/50 shadow-inner leading-relaxed">
               {{ videoToDelete?.name }}
             </p>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter class="mt-6 gap-2 sm:gap-0">
-          <Button variant="outline" class="rounded-xl px-6" @click="videoToDelete = null">
+        <DialogFooter class="mt-8 gap-2 sm:gap-2">
+          <Button variant="ghost" class="rounded-xl px-6 text-xs font-bold h-11" @click="videoToDelete = null">
             {{ $t('downloader.cancel') }}
           </Button>
-          <Button variant="destructive" class="rounded-xl px-6 shadow-lg shadow-destructive/20" :disabled="isDeleting" @click="deleteVideo">
-            <Loader2 v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
+          <Button variant="destructive" class="rounded-xl px-6 shadow-lg shadow-destructive/20 h-11 text-xs font-black uppercase tracking-widest" :disabled="isDeleting" @click="deleteVideo">
+            <Loader2 v-if="isDeleting" class="mr-2 h-3.5 w-3.5 animate-spin" />
             {{ $t('downloader.delete_forever') }}
           </Button>
         </DialogFooter>

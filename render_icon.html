@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+    svg { width: 512px; height: 512px; }
+  </style>
+</head>
+<body>
+  <div id="icon-container"></div>
+  <script>
+    fetch('public/icon.svg')
+      .then(r => r.text())
+      .then(svg => {
+        document.getElementById('icon-container').innerHTML = svg;
+      });
+  </script>
+</body>
+</html>

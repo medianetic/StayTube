@@ -69,12 +69,12 @@ onMounted(async () => {
 
 <template>
   <TooltipProvider>
-    <div class="min-h-screen bg-background text-foreground p-4">
-      <div v-if="checkingBinaries" class="flex items-center justify-center h-[80vh]">
+    <div class="h-screen bg-background text-foreground flex flex-col overflow-hidden">
+      <div v-if="checkingBinaries" class="flex items-center justify-center flex-1">
         <p>{{ $t('app.checking_deps') }}</p>
       </div>
 
-      <div v-else-if="!binariesReady" class="flex items-center justify-center h-[80vh]">
+      <div v-else-if="!binariesReady" class="flex items-center justify-center flex-1">
         <Card class="w-[450px]">
           <CardHeader>
             <CardTitle class="flex items-center gap-2">
@@ -98,53 +98,61 @@ onMounted(async () => {
         </Card>
       </div>
 
-      <div v-else class="max-w-3xl mx-auto py-10 px-4">
-        <div class="flex flex-col items-center mb-10">
-          <div class="bg-primary/10 p-4 rounded-2xl mb-4">
-            <Download class="h-10 w-10 text-primary" />
-          </div>
-          <h1 class="text-4xl font-extrabold tracking-tight">ClipVault</h1>
-          <p class="text-muted-foreground mt-2">{{ $t('app.subtitle') }}</p>
-          <p class="text-xs text-muted-foreground/60 mt-1 font-medium">v{{ version }}</p>
-        </div>
-        
-        <Tabs v-model="activeTab" class="w-full flex flex-col items-center">
-          <TabsList class="mb-8">
-            <TabsTrigger value="downloader" class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all">{{ $t('app.tab_downloader') }}</TabsTrigger>
-            <TabsTrigger 
-              value="settings" 
-              class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all"
-              @pointerdown="activeTab === 'settings' ? (activeTab = 'downloader', $event.preventDefault()) : null"
-            >
-              {{ $t('app.tab_settings') }}
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="downloader" class="w-full outline-none">
-            <DownloaderTab />
-          </TabsContent>
-          
-          <TabsContent value="settings" class="w-full outline-none animate-in fade-in slide-in-from-right-4 duration-300">
-            <div class="relative bg-card rounded-3xl border shadow-2xl overflow-hidden">
-              <div class="flex items-center justify-between p-6 border-b bg-muted/30">
-                <div>
-                  <h2 class="text-2xl font-bold tracking-tight">{{ $t('app.settings_title') }}</h2>
-                  <p class="text-sm text-muted-foreground">{{ $t('app.settings_desc') }}</p>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  class="hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors h-10 w-10"
-                  @click="activeTab = 'downloader'"
-                >
-                  <X class="h-6 w-6" />
-                </Button>
+      <div v-else class="max-w-5xl w-full mx-auto px-6 py-4 flex flex-col flex-1 overflow-hidden">
+        <Tabs v-model="activeTab" class="flex flex-col flex-1 overflow-hidden">
+          <header class="flex items-center justify-between mb-6 flex-shrink-0">
+            <div class="flex items-center gap-4">
+              <div class="bg-primary/15 p-2.5 rounded-2xl shadow-sm border border-primary/10">
+                <Download class="h-6 w-6 text-primary" />
               </div>
-              <div class="p-8">
-                <SettingsTab />
+              <div>
+                <div class="flex items-center gap-2.5 leading-none">
+                  <h1 class="text-2xl font-black tracking-tighter">ClipVault</h1>
+                  <span class="text-[10px] text-muted-foreground/50 font-bold bg-muted px-1.5 py-0.5 rounded uppercase tracking-widest">v{{ version }}</span>
+                </div>
+                <p class="text-[11px] text-muted-foreground/80 mt-1 font-medium">{{ $t('app.subtitle') }}</p>
               </div>
             </div>
-          </TabsContent>
+            
+            <TabsList class="h-10 p-1 bg-muted/30 border-none shadow-inner rounded-xl">
+              <TabsTrigger value="downloader" class="h-8 px-5 text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg">{{ $t('app.tab_downloader') }}</TabsTrigger>
+              <TabsTrigger 
+                value="settings" 
+                class="h-8 px-5 text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm rounded-lg"
+                @pointerdown="activeTab === 'settings' ? (activeTab = 'downloader', $event.preventDefault()) : null"
+              >
+                {{ $t('app.tab_settings') }}
+              </TabsTrigger>
+            </TabsList>
+          </header>
+          
+          <div class="flex-1 flex flex-col overflow-hidden px-1 pt-1">
+            <TabsContent value="downloader" class="flex-1 outline-none m-0 overflow-hidden h-full">
+              <DownloaderTab />
+            </TabsContent>
+            
+            <TabsContent value="settings" class="flex-1 overflow-y-auto outline-none animate-in fade-in slide-in-from-right-4 duration-300 m-0 pb-4 h-full">
+              <div class="relative bg-card rounded-2xl border shadow-xl overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between p-4 border-b bg-muted/30 flex-shrink-0">
+                  <div>
+                    <h2 class="text-lg font-bold tracking-tight">{{ $t('app.settings_title') }}</h2>
+                    <p class="text-xs text-muted-foreground">{{ $t('app.settings_desc') }}</p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    class="hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors h-8 w-8"
+                    @click="activeTab = 'downloader'"
+                  >
+                    <X class="h-5 w-5" />
+                  </Button>
+                </div>
+                <div class="p-6">
+                  <SettingsTab />
+                </div>
+              </div>
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>

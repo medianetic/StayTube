@@ -78,79 +78,79 @@ onMounted(loadSettings)
 </script>
 
 <template>
-  <div class="space-y-12">
+  <div class="space-y-8">
     <!-- Storage Section -->
-    <section class="space-y-4">
-      <div class="flex items-center gap-2 mb-2">
-        <div class="bg-blue-500/10 p-2 rounded-lg text-blue-500">
-          <HardDrive class="h-5 w-5" />
+    <section class="space-y-3">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="bg-blue-500/10 p-1.5 rounded-lg text-blue-500">
+          <HardDrive class="h-4 w-4" />
         </div>
-        <h3 class="text-lg font-bold">{{ $t('settings.storage') }}</h3>
+        <h3 class="text-base font-bold">{{ $t('settings.storage') }}</h3>
       </div>
-      <div class="pl-11 space-y-4">
-        <div class="space-y-2">
-          <label class="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">{{ $t('settings.default_dir') }}</label>
+      <div class="pl-10 space-y-3">
+        <div class="space-y-1.5">
+          <label class="font-bold text-muted-foreground uppercase tracking-wider text-[9px]">{{ $t('settings.default_dir') }}</label>
           <div class="flex gap-2">
-            <Input v-model="downloadDir" readonly :placeholder="$t('settings.default_dir_placeholder')" class="bg-muted/50 border-none shadow-inner h-11" />
-            <Button variant="secondary" size="icon" @click="selectDirectory" class="h-11 w-11 shrink-0">
-              <FolderOpen class="h-5 w-5" />
+            <Input v-model="downloadDir" readonly :placeholder="$t('settings.default_dir_placeholder')" class="bg-muted/50 border-none shadow-inner h-10 text-xs" />
+            <Button variant="secondary" size="icon" @click="selectDirectory" class="h-10 w-10 shrink-0">
+              <FolderOpen class="h-4 w-4" />
             </Button>
           </div>
-          <p class="text-[11px] text-muted-foreground italic">{{ $t('settings.dir_hint') }}</p>
+          <p class="text-[10px] text-muted-foreground italic pl-1">{{ $t('settings.dir_hint') }}</p>
         </div>
       </div>
     </section>
 
     <!-- Appearance Section -->
-    <section class="space-y-4">
-      <div class="flex items-center gap-2 mb-2">
-        <div class="bg-purple-500/10 p-2 rounded-lg text-purple-500">
-          <Palette class="h-5 w-5" />
+    <section class="space-y-3">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="bg-purple-500/10 p-1.5 rounded-lg text-purple-500">
+          <Palette class="h-4 w-4" />
         </div>
-        <h3 class="text-lg font-bold">{{ $t('settings.appearance') }}</h3>
+        <h3 class="text-base font-bold">{{ $t('settings.appearance') }}</h3>
       </div>
-      <div class="pl-11 space-y-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-2 mt-0">
-          <label class="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">{{ $t('settings.theme_mode') }}</label>
+      <div class="pl-10 space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-1.5 mt-0">
+          <label class="font-bold text-muted-foreground uppercase tracking-wider text-[9px]">{{ $t('settings.theme_mode') }}</label>
           <Select v-model="theme">
-            <SelectTrigger class="bg-muted/50 border-none shadow-inner h-11">
+            <SelectTrigger class="bg-muted/50 border-none shadow-inner h-10 text-xs">
               <SelectValue :placeholder="$t('settings.select_theme')" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="light">
-                <div class="flex items-center gap-2 py-1">
-                  <Sun class="h-4 w-4 text-orange-500" /> {{ $t('settings.light_mode') }}
+                <div class="flex items-center gap-2 py-0.5">
+                  <Sun class="h-3.5 w-3.5 text-orange-500" /> {{ $t('settings.light_mode') }}
                 </div>
               </SelectItem>
               <SelectItem value="dark">
-                <div class="flex items-center gap-2 py-1">
-                  <Moon class="h-4 w-4 text-indigo-400" /> {{ $t('settings.dark_mode') }}
+                <div class="flex items-center gap-2 py-0.5">
+                  <Moon class="h-3.5 w-3.5 text-indigo-400" /> {{ $t('settings.dark_mode') }}
                 </div>
               </SelectItem>
               <SelectItem value="system">
-                <div class="flex items-center gap-2 py-1">
-                  <Monitor class="h-4 w-4 text-slate-400" /> {{ $t('settings.system_default') }}
+                <div class="flex items-center gap-2 py-0.5">
+                  <Monitor class="h-3.5 w-3.5 text-slate-400" /> {{ $t('settings.system_default') }}
                 </div>
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
         
-        <div class="space-y-2 mt-0">
-          <label class="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">{{ $t('settings.app_language') }}</label>
+        <div class="space-y-1.5 mt-0">
+          <label class="font-bold text-muted-foreground uppercase tracking-wider text-[9px]">{{ $t('settings.app_language') }}</label>
           <Select v-model="appLang">
-            <SelectTrigger class="bg-muted/50 border-none shadow-inner h-11">
+            <SelectTrigger class="bg-muted/50 border-none shadow-inner h-10 text-xs">
               <SelectValue :placeholder="$t('settings.select_language')" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="en">
-                <div class="flex items-center gap-2 py-1">
-                  <Globe class="h-4 w-4 text-blue-400" /> English
+                <div class="flex items-center gap-2 py-0.5">
+                  <Globe class="h-3.5 w-3.5 text-blue-400" /> English
                 </div>
               </SelectItem>
               <SelectItem value="de">
-                <div class="flex items-center gap-2 py-1">
-                  <Globe class="h-4 w-4 text-yellow-400" /> Deutsch
+                <div class="flex items-center gap-2 py-0.5">
+                  <Globe class="h-3.5 w-3.5 text-yellow-400" /> Deutsch
                 </div>
               </SelectItem>
             </SelectContent>
@@ -160,19 +160,19 @@ onMounted(loadSettings)
     </section>
 
     <!-- Download Preferences Section -->
-    <section class="space-y-4">
-      <div class="flex items-center gap-2 mb-2">
-        <div class="bg-green-500/10 p-2 rounded-lg text-green-500">
-          <Settings2 class="h-5 w-5" />
+    <section class="space-y-3">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="bg-green-500/10 p-1.5 rounded-lg text-green-500">
+          <Settings2 class="h-4 w-4" />
         </div>
-        <h3 class="text-lg font-bold">{{ $t('settings.download_prefs') }}</h3>
+        <h3 class="text-base font-bold">{{ $t('settings.download_prefs') }}</h3>
       </div>
-      <div class="pl-11 space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="space-y-2">
-            <label class="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">{{ $t('settings.default_quality') }}</label>
+      <div class="pl-10 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="font-bold text-muted-foreground uppercase tracking-wider text-[9px]">{{ $t('settings.default_quality') }}</label>
             <Select v-model="defaultQuality">
-              <SelectTrigger class="bg-muted/50 border-none shadow-inner h-11">
+              <SelectTrigger class="bg-muted/50 border-none shadow-inner h-10 text-xs">
                 <SelectValue placeholder="Select quality" />
               </SelectTrigger>
               <SelectContent>
@@ -183,13 +183,13 @@ onMounted(loadSettings)
               </SelectContent>
             </Select>
           </div>
-          <div class="space-y-2">
+          <div class="space-y-1.5">
             <div class="flex items-center justify-between">
-              <label class="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">{{ $t('settings.enable_subtitles') }}</label>
-              <Switch v-model:checked="defaultSubtitles" />
+              <label class="font-bold text-muted-foreground uppercase tracking-wider text-[9px]">{{ $t('settings.enable_subtitles') }}</label>
+              <Switch v-model:checked="defaultSubtitles" class="h-4 w-7" />
             </div>
             <Select v-model="defaultSubLang" :disabled="!defaultSubtitles">
-              <SelectTrigger class="bg-muted/50 border-none shadow-inner h-11 disabled:opacity-40">
+              <SelectTrigger class="bg-muted/50 border-none shadow-inner h-10 text-xs disabled:opacity-40">
                 <SelectValue :placeholder="$t('downloader.language')" />
               </SelectTrigger>
               <SelectContent>
@@ -205,36 +205,36 @@ onMounted(loadSettings)
     </section>
 
     <!-- About Section -->
-    <section class="space-y-4 pt-4">
-      <div class="flex items-center gap-2 mb-2">
-        <div class="bg-orange-500/10 p-2 rounded-lg text-orange-500">
-          <Info class="h-5 w-5" />
+    <section class="space-y-3 pt-2">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="bg-orange-500/10 p-1.5 rounded-lg text-orange-500">
+          <Info class="h-4 w-4" />
         </div>
-        <h3 class="text-lg font-bold">{{ $t('settings.about') }}</h3>
+        <h3 class="text-base font-bold">{{ $t('settings.about') }}</h3>
       </div>
-      <div class="pl-11 space-y-6">
-        <div class="p-4 bg-muted/30 rounded-2xl border border-border/50">
-          <p class="text-sm font-medium text-foreground">ClipVault</p>
-          <p class="text-xs text-muted-foreground mt-1">{{ $t('settings.version', { version }) }}</p>
-          <p class="text-xs text-muted-foreground mt-3 leading-relaxed">
+      <div class="pl-10 space-y-4">
+        <div class="p-3 bg-muted/30 rounded-xl border border-border/50">
+          <p class="text-sm font-bold text-foreground">ClipVault</p>
+          <p class="text-[10px] text-muted-foreground mt-0.5">{{ $t('settings.version', { version }) }}</p>
+          <p class="text-[11px] text-muted-foreground mt-2 leading-relaxed">
             {{ $t('settings.desc') }}
           </p>
         </div>
 
-        <div class="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10 group hover:bg-primary/10 transition-colors">
+        <div class="flex items-center justify-between p-3 bg-primary/5 rounded-xl border border-primary/10 group hover:bg-primary/10 transition-colors">
           <div class="flex items-center gap-3">
-            <div class="bg-background p-2 rounded-full shadow-sm">
-              <User class="h-4 w-4 text-primary" />
+            <div class="bg-background p-1.5 rounded-full shadow-sm">
+              <User class="h-3.5 w-3.5 text-primary" />
             </div>
             <div>
-              <p class="text-xs font-bold uppercase tracking-tight text-primary/70">{{ $t('settings.developer') }}</p>
-              <p class="text-sm font-bold">Nick Weschkalnies</p>
+              <p class="text-[9px] font-bold uppercase tracking-tight text-primary/70">{{ $t('settings.developer') }}</p>
+              <p class="text-xs font-bold">Nick Weschkalnies</p>
             </div>
           </div>
           <Button 
             variant="ghost" 
             size="sm" 
-            class="rounded-full gap-2 text-xs h-8"
+            class="rounded-full gap-2 text-[10px] h-7 px-3"
             @click="openExternal('https://www.weschkalnies.de')"
           >
             {{ $t('settings.visit_website') }} <ExternalLink class="h-3 w-3" />
