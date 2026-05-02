@@ -214,7 +214,7 @@ onMounted(loadSettings)
       </div>
       <div class="pl-11 space-y-6">
         <div class="p-4 bg-muted/30 rounded-2xl border border-border/50">
-          <p class="text-sm font-medium text-foreground">StayTube</p>
+          <p class="text-sm font-medium text-foreground">ClipVault</p>
           <p class="text-xs text-muted-foreground mt-1">{{ $t('settings.version', { version }) }}</p>
           <p class="text-xs text-muted-foreground mt-3 leading-relaxed">
             {{ $t('settings.desc') }}

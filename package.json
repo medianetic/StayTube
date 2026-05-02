@@ -1,8 +1,8 @@
 {
-  "name": "staytube",
+  "name": "clipvault",
   "private": true,
   "version": "1.0.1",
-  "description": "StayTube - A high-performance Electron frontend for yt-dlp",
+  "description": "ClipVault - A high-performance Electron frontend for yt-dlp",
   "author": "Nick Weschkalnies",
   "type": "module",
   "scripts": {

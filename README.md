@@ -1,13 +1,13 @@
-# StayTube
+# ClipVault
 
-StayTube is a modern, high-performance desktop application built with Electron and Vue 3 that serves as a powerful frontend for `yt-dlp`. It provides a streamlined, user-friendly interface for downloading videos and audio from YouTube and over 1,000 other supported platforms.
+ClipVault is a modern, high-performance desktop application built with Electron and Vue 3 that serves as a powerful frontend for `yt-dlp`. It provides a streamlined, user-friendly interface for downloading videos and audio from YouTube and over 1,000 other supported platforms.
 
 ## Key Features
 
 - **Broad Compatibility**: Leverage the power of `yt-dlp` to download from a vast range of websites beyond just YouTube.
 - **Modern User Experience**: A clean, responsive interface built with Vue 3, Tailwind CSS, and shadcn-vue components.
 - **Smart Quality Selection**: Choose between highest available quality, specific formats (MP4, MKV), or audio-only extraction.
-- **Automated Dependency Management**: StayTube automatically handles the setup and updates for `yt-dlp` and `FFmpeg` on first run.
+- **Automated Dependency Management**: ClipVault automatically handles the setup and updates for `yt-dlp` and `FFmpeg` on first run.
 - **Subtitle Support**: Select and embed subtitles in multiple languages directly into your downloads.
 - **Integrated Library**: Track and manage your download history and local library directly within the application.
 - **Persistent Settings**: Custom download directories and preferences are managed via a secure local store.
@@ -20,12 +20,12 @@ StayTube is a modern, high-performance desktop application built with Electron a
 
 ### Building from Source
 
-To build StayTube manually, ensure you have [Node.js](https://nodejs.org/) (LTS) installed on your system.
+To build ClipVault manually, ensure you have [Node.js](https://nodejs.org/) (LTS) installed on your system.
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/staytube.git
-   cd staytube
+   git clone https://github.com/yourusername/clipvault.git
+   cd clipvault
    ```
 
 2. **Install dependencies**
@@ -43,7 +43,7 @@ The installer will be generated in the `release/` directory.
 
 ## Development
 
-StayTube is built using a modern frontend stack integrated with Electron.
+ClipVault is built using a modern frontend stack integrated with Electron.
 
 ### Tech Stack
 
@@ -72,7 +72,7 @@ Contributions are welcome. Please feel free to submit a Pull Request or open an 
 
 ## Author
 
-- **Nick Weschkalnies** - [@medianetic](https://github.com/medianetic) - [nick@weschkalnies.de](mailto:nick@weschkalnies.de
+- **Nick Weschkalnies** - [@medianetic](https://github.com/medianetic) - [nick@weschkalnies.de](mailto:nick@weschkalnies.de)
 
 ## Support
 

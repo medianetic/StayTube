@@ -1,9 +1,9 @@
 // @see - https://www.electron.build/configuration/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "com.staytube.app",
+  "appId": "com.clipvault.app",
   "asar": true,
-  "productName": "StayTube",
+  "productName": "ClipVault",
   "directories": {
     "output": "release/${version}"
   },
@@ -39,7 +39,7 @@
       "AppImage"
     ],
     "category": "Utility",
-    "executableName": "staytube",
+    "executableName": "clipvault",
     "artifactName": "${productName}-Linux-${version}.${ext}"
   }
 }
