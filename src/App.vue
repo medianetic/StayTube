@@ -9,6 +9,7 @@ import DownloaderTab from '@/components/DownloaderTab.vue'
 import SettingsTab from '@/components/SettingsTab.vue'
 import { AlertCircle, Download, X } from 'lucide-vue-next'
 import { version } from '../package.json'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 const binariesReady = ref(false)
 const checkingBinaries = ref(true)
@@ -67,85 +68,87 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background text-foreground p-4">
-    <div v-if="checkingBinaries" class="flex items-center justify-center h-[80vh]">
-      <p>{{ $t('app.checking_deps') }}</p>
-    </div>
-
-    <div v-else-if="!binariesReady" class="flex items-center justify-center h-[80vh]">
-      <Card class="w-[450px]">
-        <CardHeader>
-          <CardTitle class="flex items-center gap-2">
-            <AlertCircle class="text-destructive" />
-            {{ $t('app.missing_deps') }}
-          </CardTitle>
-          <CardDescription>
-            {{ $t('app.deps_required') }}
-          </CardDescription>
-        </CardHeader>
-        <CardContent class="space-y-4">
-          <div v-if="downloadingBinary" class="space-y-2">
-            <p class="text-sm">{{ $t('app.downloading', { binary: downloadingBinary }) }}</p>
-            <Progress :model-value="downloadProgress" />
-          </div>
-          <Button v-else @click="installBinaries" class="w-full">
-            <Download class="mr-2 h-4 w-4" />
-            {{ $t('app.download_install') }}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-
-    <div v-else class="max-w-3xl mx-auto py-10 px-4">
-      <div class="flex flex-col items-center mb-10">
-        <div class="bg-primary/10 p-4 rounded-2xl mb-4">
-          <Download class="h-10 w-10 text-primary" />
-        </div>
-        <h1 class="text-4xl font-extrabold tracking-tight">StayTube</h1>
-        <p class="text-muted-foreground mt-2">{{ $t('app.subtitle') }}</p>
-        <p class="text-xs text-muted-foreground/60 mt-1 font-medium">v{{ version }}</p>
+  <TooltipProvider>
+    <div class="min-h-screen bg-background text-foreground p-4">
+      <div v-if="checkingBinaries" class="flex items-center justify-center h-[80vh]">
+        <p>{{ $t('app.checking_deps') }}</p>
       </div>
-      
-      <Tabs v-model="activeTab" class="w-full flex flex-col items-center">
-        <TabsList class="mb-8">
-          <TabsTrigger value="downloader" class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all">{{ $t('app.tab_downloader') }}</TabsTrigger>
-          <TabsTrigger 
-            value="settings" 
-            class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all"
-            @pointerdown="activeTab === 'settings' ? (activeTab = 'downloader', $event.preventDefault()) : null"
-          >
-            {{ $t('app.tab_settings') }}
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="downloader" class="w-full outline-none">
-          <DownloaderTab />
-        </TabsContent>
-        
-        <TabsContent value="settings" class="w-full outline-none animate-in fade-in slide-in-from-right-4 duration-300">
-          <div class="relative bg-card rounded-3xl border shadow-2xl overflow-hidden">
-            <div class="flex items-center justify-between p-6 border-b bg-muted/30">
-              <div>
-                <h2 class="text-2xl font-bold tracking-tight">{{ $t('app.settings_title') }}</h2>
-                <p class="text-sm text-muted-foreground">{{ $t('app.settings_desc') }}</p>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                class="hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors h-10 w-10"
-                @click="activeTab = 'downloader'"
-              >
-                <X class="h-6 w-6" />
-              </Button>
+
+      <div v-else-if="!binariesReady" class="flex items-center justify-center h-[80vh]">
+        <Card class="w-[450px]">
+          <CardHeader>
+            <CardTitle class="flex items-center gap-2">
+              <AlertCircle class="text-destructive" />
+              {{ $t('app.missing_deps') }}
+            </CardTitle>
+            <CardDescription>
+              {{ $t('app.deps_required') }}
+            </CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div v-if="downloadingBinary" class="space-y-2">
+              <p class="text-sm">{{ $t('app.downloading', { binary: downloadingBinary }) }}</p>
+              <Progress :model-value="downloadProgress" />
             </div>
-            <div class="p-8">
-              <SettingsTab />
-            </div>
+            <Button v-else @click="installBinaries" class="w-full">
+              <Download class="mr-2 h-4 w-4" />
+              {{ $t('app.download_install') }}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div v-else class="max-w-3xl mx-auto py-10 px-4">
+        <div class="flex flex-col items-center mb-10">
+          <div class="bg-primary/10 p-4 rounded-2xl mb-4">
+            <Download class="h-10 w-10 text-primary" />
           </div>
-        </TabsContent>
-      </Tabs>
+          <h1 class="text-4xl font-extrabold tracking-tight">StayTube</h1>
+          <p class="text-muted-foreground mt-2">{{ $t('app.subtitle') }}</p>
+          <p class="text-xs text-muted-foreground/60 mt-1 font-medium">v{{ version }}</p>
+        </div>
+        
+        <Tabs v-model="activeTab" class="w-full flex flex-col items-center">
+          <TabsList class="mb-8">
+            <TabsTrigger value="downloader" class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all">{{ $t('app.tab_downloader') }}</TabsTrigger>
+            <TabsTrigger 
+              value="settings" 
+              class="px-10 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary transition-all"
+              @pointerdown="activeTab === 'settings' ? (activeTab = 'downloader', $event.preventDefault()) : null"
+            >
+              {{ $t('app.tab_settings') }}
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="downloader" class="w-full outline-none">
+            <DownloaderTab />
+          </TabsContent>
+          
+          <TabsContent value="settings" class="w-full outline-none animate-in fade-in slide-in-from-right-4 duration-300">
+            <div class="relative bg-card rounded-3xl border shadow-2xl overflow-hidden">
+              <div class="flex items-center justify-between p-6 border-b bg-muted/30">
+                <div>
+                  <h2 class="text-2xl font-bold tracking-tight">{{ $t('app.settings_title') }}</h2>
+                  <p class="text-sm text-muted-foreground">{{ $t('app.settings_desc') }}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  class="hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors h-10 w-10"
+                  @click="activeTab = 'downloader'"
+                >
+                  <X class="h-6 w-6" />
+                </Button>
+              </div>
+              <div class="p-8">
+                <SettingsTab />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
-  </div>
+  </TooltipProvider>
 </template>
 
 <style>

@@ -77,6 +77,7 @@ function createWindow() {
   ipcMain.handle('check-video-exists', (_event, title) => downloader.checkFileExists(title, store.get('downloadDir') as string))
   ipcMain.handle('open-external', (_event, url) => shell.openExternal(url))
   ipcMain.handle('open-file', (_event, filePath) => shell.openPath(filePath))
+  ipcMain.handle('open-folder', (_event, filePath) => shell.showItemInFolder(filePath))
 
   ipcMain.handle('list-videos', async (_event, dirPath) => {
     try {

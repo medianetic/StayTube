@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Progress } from '@/components/ui/progress'
-import { Search, Download, Loader2, CheckCircle2, AlertCircle, Youtube, Languages, Settings2, PlayCircle } from 'lucide-vue-next'
+import { Search, Download, Loader2, CheckCircle2, AlertCircle, Youtube, Languages, Settings2, PlayCircle, Folder } from 'lucide-vue-next'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface DownloadItem {
   url: string
@@ -124,6 +125,12 @@ const startDownload = async () => {
 const openFile = (filePath?: string) => {
   if (filePath) {
     window.api.openFile(filePath)
+  }
+}
+
+const openFolder = (filePath?: string) => {
+  if (filePath) {
+    window.api.openFolder(filePath)
   }
 }
 
@@ -277,6 +284,22 @@ onMounted(async () => {
                     <p class="text-[10px] text-muted-foreground font-medium">{{ formatDate(download.timestamp) }}</p>
                   </div>
                   <div class="flex-shrink-0 flex items-center gap-2">
+                    <Tooltip v-if="download.status === 'completed'">
+                      <TooltipTrigger as-child>
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          class="h-7 w-7 rounded-md"
+                          @click="openFolder(download.filePath)"
+                        >
+                          <Folder class="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p class="text-[10px]">{{ $t('downloader.open_folder') }}</p>
+                      </TooltipContent>
+                    </Tooltip>
+
                     <Button 
                       v-if="download.status === 'completed'" 
                       variant="outline" 
@@ -346,14 +369,33 @@ onMounted(async () => {
                   </div>
                 </div>
               </div>
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                class="shrink-0 h-9 px-4 rounded-full font-bold text-xs gap-2 hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
-                @click="openFile(video.path)"
-              >
-                {{ $t('downloader.view_video') }}
-              </Button>
+              
+              <div class="flex items-center gap-2 shrink-0">
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      class="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary transition-all"
+                      @click="openFolder(video.path)"
+                    >
+                      <Folder class="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p class="text-[10px] font-medium">{{ $t('downloader.open_folder') }}</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  class="h-9 px-4 rounded-full font-bold text-xs gap-2 hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
+                  @click="openFile(video.path)"
+                >
+                  {{ $t('downloader.view_video') }}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

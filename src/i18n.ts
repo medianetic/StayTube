@@ -35,6 +35,7 @@ const messages = {
       success: 'Success',
       failed: 'Failed',
       open_video: 'Open Video',
+      open_folder: 'Open Folder',
       library: 'Library',
       file: 'File | Files',
       view_video: 'View Video'
@@ -96,6 +97,7 @@ const messages = {
       success: 'Erfolgreich',
       failed: 'Fehlgeschlagen',
       open_video: 'Video öffnen',
+      open_folder: 'Ordner öffnen',
       library: 'Bibliothek',
       file: 'Datei | Dateien',
       view_video: 'Video ansehen'

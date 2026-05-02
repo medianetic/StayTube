@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('api', {
   checkVideoExists: (title: string) => ipcRenderer.invoke('check-video-exists', title),
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
   openFile: (filePath: string) => ipcRenderer.invoke('open-file', filePath),
+  openFolder: (filePath: string) => ipcRenderer.invoke('open-folder', filePath),
   listVideos: (dirPath?: string) => ipcRenderer.invoke('list-videos', dirPath),
   onBinaryProgress: (callback: any) => ipcRenderer.on('binary-progress', (_event, value) => callback(value)),
   onDownloadProgress: (callback: any) => ipcRenderer.on('download-progress', (_event, value) => callback(value)),

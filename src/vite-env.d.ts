@@ -13,6 +13,7 @@ interface Window {
     checkVideoExists: (title: string) => Promise<boolean>
     openExternal: (url: string) => Promise<void>
     openFile: (filePath: string) => Promise<void>
+    openFolder: (filePath: string) => Promise<void>
     listVideos: (dirPath?: string) => Promise<Array<{ name: string, path: string, size: number, mtime: Date }>>
     onBinaryProgress: (callback: (data: { name: string, progress: number }) => void) => void
     onDownloadProgress: (callback: (data: { url: string; progress: number }) => void) => void
