@@ -5,14 +5,14 @@ ClipVault is a modern, high-performance desktop application built with Electron 
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/main-ui.png" width="800" alt="ClipVault Main Interface">
+  <img src="screenshots/main-ui.png" width="800" alt="ClipVault Main Interface">
   <br>
   <em>Main Downloader Interface with Smart Metadata Fetching</em>
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/library-grid.png" width="400" alt="Library Grid View">
-  <img src="docs/screenshots/library-compact.png" width="400" alt="Library Compact View">
+  <img src="screenshots/library-grid.png" width="400" alt="Library Grid View">
+  <img src="screenshots/library-compact.png" width="400" alt="Library Compact View">
   <br>
   <em>Visual Library with Thumbnails and Compact Shortlist View</em>
 </p>
