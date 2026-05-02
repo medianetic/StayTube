@@ -1,5 +1,10 @@
 import { app, BrowserWindow, ipcMain, dialog, shell, Menu, protocol } from 'electron'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+
+// Register custom protocols as privileged
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'thumb', privileges: { secure: true, standard: true, supportFetchAPI: true, bypassCSP: true } }
+])
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import Store from 'electron-store'
@@ -16,9 +21,24 @@ const thumbnailManager = new ThumbnailManager(binaryManager)
 
 // Register thumb protocol
 app.whenReady().then(() => {
-  protocol.handle('thumb', (request) => {
-    const filePath = request.url.slice('thumb://'.length)
-    return Response.redirect(`file://${filePath}`)
+  protocol.handle('thumb', async (request) => {
+    try {
+      const encodedPath = request.url.replace('thumb://', '')
+      let filePath = decodeURIComponent(encodedPath)
+      
+      // On Linux/macOS, ensure the path starts with / if it was lost
+      if (process.platform !== 'win32' && !filePath.startsWith('/')) {
+        filePath = '/' + filePath
+      }
+      
+      const data = await fs.readFile(filePath)
+      return new Response(data, {
+        headers: { 'Content-Type': 'image/jpeg' }
+      })
+    } catch (e) {
+      console.error('Failed to serve thumbnail:', e)
+      return new Response(null, { status: 404 })
+    }
   })
 })
 

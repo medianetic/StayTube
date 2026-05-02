@@ -509,66 +509,89 @@ const setSortBy = (sort: 'date' | 'name' | 'size') => {
       </div>
       
       <!-- Grid View (Detailed) -->
-      <div v-if="viewMode === 'detailed'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-        <Card v-for="video in filteredVideos" :key="video.path" class="group overflow-hidden border-2 border-transparent hover:border-primary/20 transition-all duration-300 shadow-sm hover:shadow-xl bg-card/40">
+      <div v-if="viewMode === 'detailed'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+        <Card v-for="video in filteredVideos" :key="video.path" class="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 bg-card/40 backdrop-blur-sm">
           <CardContent class="p-0">
             <div class="flex flex-col h-full">
-              <!-- Thumbnail Wrapper -->
-              <div class="relative aspect-video bg-muted overflow-hidden">
-                <img v-if="video.thumbnail" :src="video.thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div v-else class="w-full h-full flex items-center justify-center">
-                  <PlayCircle class="h-12 w-12 text-muted-foreground/30" />
-                </div>
-                
-                <!-- Duration Badge -->
-                <div class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-sm text-[10px] font-bold text-white tracking-wider">
-                  {{ formatDuration(video.duration) }}
-                </div>
+              <!-- Thumbnail Wrapper with Padding -->
+              <div class="p-3 pb-0">
+                <div class="relative aspect-video bg-muted/30 overflow-hidden cursor-pointer rounded-xl border border-border/50 shadow-inner group-hover:border-primary/30 transition-colors" @click="openFile(video.path)">
+                  <img v-if="video.thumbnail" :src="video.thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div v-else class="w-full h-full flex items-center justify-center">
+                    <PlayCircle class="h-12 w-12 text-muted-foreground/10" />
+                  </div>
+                  
+                  <!-- Duration Badge -->
+                  <div class="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[9px] font-bold text-white tracking-wider border border-white/10">
+                    {{ formatDuration(video.duration) }}
+                  </div>
 
-                <!-- Hover Overlay Controls -->
-                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                  <Button size="icon" variant="secondary" class="h-10 w-10 rounded-full shadow-lg" @click="openFile(video.path)">
-                    <PlayCircle class="h-6 w-6" />
-                  </Button>
+                  <!-- Hover Overlay -->
+                  <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div class="bg-primary text-primary-foreground p-3 rounded-full shadow-2xl scale-90 group-hover:scale-100 transition-transform">
+                      <PlayCircle class="h-6 w-6" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <!-- Content Wrapper -->
-              <div class="p-4 flex flex-col justify-between flex-1">
-                <div class="space-y-1 mb-4">
-                  <p class="text-sm font-bold line-clamp-1 text-foreground leading-tight" :title="video.name">{{ video.name }}</p>
-                  <div class="flex items-center gap-2 text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
-                    <span>{{ formatFileSize(video.size) }}</span>
+              <div class="p-5 pt-4 flex flex-col justify-between flex-1 space-y-4">
+                <div class="space-y-2">
+                  <p class="text-sm font-bold line-clamp-2 text-foreground leading-snug h-10" :title="video.name">{{ video.name }}</p>
+                  <div class="flex items-center gap-3 text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                    <span class="flex items-center gap-1.5"><HardDrive class="h-3 w-3" /> {{ formatFileSize(video.size) }}</span>
                     <span class="opacity-30">•</span>
-                    <span>{{ formatDate(video.mtime) }}</span>
+                    <span class="flex items-center gap-1.5"><Clock class="h-3 w-3" /> {{ formatDate(video.mtime) }}</span>
                   </div>
                 </div>
 
-                <div class="flex items-center justify-between pt-2 border-t border-border/40">
-                  <div class="flex items-center gap-1">
-                    <Tooltip>
-                      <TooltipTrigger as-child>
-                        <Button variant="ghost" size="icon" class="h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" @click="openFolder(video.path)">
-                          <Folder class="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent><p class="text-[10px]">{{ $t('downloader.open_folder') }}</p></TooltipContent>
-                    </Tooltip>
-                  </div>
+                <!-- Action Bar -->
+                <div class="grid grid-cols-3 gap-1 pt-4 border-t border-border/40">
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button 
+                        class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-primary/10 text-primary transition-all active:scale-95 group/btn" 
+                        @click="openFile(video.path)"
+                      >
+                        <div class="p-2 rounded-lg bg-primary/10 group-hover/btn:bg-primary group-hover/btn:text-primary-foreground transition-colors">
+                          <PlayCircle class="h-4 w-4" />
+                        </div>
+                        <span class="text-[9px] font-bold uppercase tracking-tighter opacity-80">{{ $t('downloader.view_video_short') }}</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent><p class="text-[10px]">{{ $t('downloader.view_video') }}</p></TooltipContent>
+                  </Tooltip>
 
-                  <div class="flex items-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger as-child>
-                        <Button variant="ghost" size="icon" class="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" @click="confirmDelete(video)">
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button 
+                        class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-all active:scale-95 group/btn" 
+                        @click="openFolder(video.path)"
+                      >
+                        <div class="p-2 rounded-lg bg-muted group-hover/btn:bg-foreground group-hover/btn:text-background transition-colors">
+                          <Folder class="h-4 w-4" />
+                        </div>
+                        <span class="text-[9px] font-bold uppercase tracking-tighter opacity-80">{{ $t('downloader.open_folder_short') }}</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent><p class="text-[10px]">{{ $t('downloader.open_folder') }}</p></TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button 
+                        class="flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all active:scale-95 group/btn" 
+                        @click="confirmDelete(video)"
+                      >
+                        <div class="p-2 rounded-lg bg-muted group-hover/btn:bg-destructive group-hover/btn:text-destructive-foreground transition-colors">
                           <Trash2 class="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent><p class="text-[10px]">{{ $t('downloader.delete_video') }}</p></TooltipContent>
-                    </Tooltip>
-                    <Button variant="outline" size="sm" class="h-8 px-4 text-xs font-bold rounded-full shadow-sm" @click="openFile(video.path)">
-                      {{ $t('downloader.view_video') }}
-                    </Button>
-                  </div>
+                        </div>
+                        <span class="text-[9px] font-bold uppercase tracking-tighter opacity-80">{{ $t('downloader.delete_video_short') }}</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent><p class="text-[10px]">{{ $t('downloader.delete_video') }}</p></TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -578,27 +601,27 @@ const setSortBy = (sort: 'date' | 'name' | 'size') => {
 
       <!-- List View (Compact) -->
       <div v-else class="space-y-2">
-        <div v-for="video in filteredVideos" :key="video.path" class="group flex items-center justify-between p-2 pl-4 pr-3 bg-muted/20 hover:bg-muted/40 rounded-xl border border-transparent hover:border-border transition-all transition-colors duration-200">
+        <div v-for="video in filteredVideos" :key="video.path" class="group flex items-center justify-between p-2.5 pl-4 pr-3 bg-card/40 hover:bg-muted/40 rounded-xl border border-border/50 transition-all duration-200">
           <div class="flex items-center gap-4 min-w-0">
-            <div class="bg-primary/10 p-2 rounded-lg text-primary shrink-0 group-hover:scale-110 transition-transform">
+            <div class="bg-primary/10 p-2 rounded-lg text-primary shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
               <PlayCircle class="h-4 w-4" />
             </div>
             <div class="min-w-0">
               <p class="text-xs font-bold truncate text-foreground pr-4" :title="video.name">{{ video.name }}</p>
-              <div class="flex items-center gap-2 mt-0.5 opacity-60">
-                <span class="text-[9px] font-bold uppercase tracking-wider">{{ formatFileSize(video.size) }}</span>
-                <span class="text-[9px]">•</span>
-                <span class="text-[9px] font-bold uppercase tracking-wider">{{ formatDate(video.mtime) }}</span>
-                <span v-if="video.duration" class="text-[9px]">•</span>
-                <span v-if="video.duration" class="text-[9px] font-bold uppercase tracking-wider">{{ formatDuration(video.duration) }}</span>
+              <div class="flex items-center gap-3 mt-1 opacity-60 text-[9px] font-bold uppercase tracking-widest">
+                <span class="flex items-center gap-1"><HardDrive class="h-2.5 w-2.5" /> {{ formatFileSize(video.size) }}</span>
+                <span class="text-muted-foreground/30">•</span>
+                <span class="flex items-center gap-1"><Clock class="h-2.5 w-2.5" /> {{ formatDate(video.mtime) }}</span>
+                <span v-if="video.duration" class="text-muted-foreground/30">•</span>
+                <span v-if="video.duration">{{ formatDuration(video.duration) }}</span>
               </div>
             </div>
           </div>
 
-          <div class="flex items-center gap-1 shrink-0 ml-4">
+          <div class="flex items-center gap-1.5 shrink-0 ml-4">
              <Tooltip>
               <TooltipTrigger as-child>
-                <Button variant="ghost" size="icon" class="h-8 w-8 rounded-md text-muted-foreground hover:text-primary transition-colors" @click="openFolder(video.path)">
+                <Button variant="ghost" size="icon" class="h-9 w-9 rounded-lg hover:bg-primary/10 hover:text-primary" @click="openFolder(video.path)">
                   <Folder class="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -607,15 +630,15 @@ const setSortBy = (sort: 'date' | 'name' | 'size') => {
 
             <Tooltip>
               <TooltipTrigger as-child>
-                <Button variant="ghost" size="icon" class="h-8 w-8 rounded-md text-muted-foreground hover:text-destructive transition-colors" @click="confirmDelete(video)">
+                <Button variant="ghost" size="icon" class="h-9 w-9 rounded-lg hover:bg-destructive/10 hover:text-destructive" @click="confirmDelete(video)">
                   <Trash2 class="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent><p class="text-[10px]">{{ $t('downloader.delete_video') }}</p></TooltipContent>
             </Tooltip>
             
-            <Button variant="ghost" size="icon" class="h-8 w-8 rounded-md text-muted-foreground hover:text-primary transition-colors" @click="openFile(video.path)">
-              <PlayCircle class="h-4 w-4" />
+            <Button variant="secondary" size="sm" class="h-9 px-4 font-bold text-[10px] uppercase gap-2 shadow-sm rounded-lg" @click="openFile(video.path)">
+              <PlayCircle class="h-3.5 w-3.5" /> {{ $t('downloader.view_video_short') }}
             </Button>
           </div>
         </div>

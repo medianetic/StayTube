@@ -31,10 +31,12 @@ export class ThumbnailManager {
     }
 
     try {
+      console.log(`Generating thumbnail for: ${videoPath}`)
       await this.generateThumbnail(videoPath, fullThumbPath)
+      console.log(`Thumbnail generated: ${fullThumbPath}`)
       return fullThumbPath
     } catch (e) {
-      console.error('Failed to generate thumbnail for:', videoPath, e)
+      console.error(`Failed to generate thumbnail for ${videoPath}:`, e)
       return null
     }
   }
@@ -43,23 +45,32 @@ export class ThumbnailManager {
     return new Promise((resolve, reject) => {
       const ffmpegPath = this.binaryManager.getFFmpegPath()
       
-      // Extract a frame at 5 seconds, or 0 if shorter
-      // -ss 00:00:05 -i input -vframes 1 -q:v 2 output
+      if (!fs.existsSync(ffmpegPath)) {
+        return reject(new Error(`FFmpeg not found at ${ffmpegPath}`))
+      }
+
+      // Extract a frame at 5 seconds
       const args = [
         '-ss', '00:00:05',
         '-i', videoPath,
         '-vframes', '1',
         '-q:v', '2',
-        '-y', // Overwrite
+        '-y',
         outputThumbPath
       ]
 
       const ffmpeg = spawn(ffmpegPath, args)
+      let errorOutput = ''
+
+      ffmpeg.stderr.on('data', (data) => {
+        errorOutput += data.toString()
+      })
 
       ffmpeg.on('close', (code) => {
         if (code === 0) {
           resolve()
         } else {
+          console.log(`FFmpeg 5s seek failed for ${videoPath}, retrying at 0s...`)
           // If 5s failed, try at 0s
           const retryArgs = [
             '-i', videoPath,
@@ -70,8 +81,11 @@ export class ThumbnailManager {
           ]
           const retryFfmpeg = spawn(ffmpegPath, retryArgs)
           retryFfmpeg.on('close', (retryCode) => {
-            if (retryCode === 0) resolve()
-            else reject(new Error(`ffmpeg exited with code ${retryCode}`))
+            if (retryCode === 0) {
+              resolve()
+            } else {
+              reject(new Error(`FFmpeg failed with code ${retryCode}. Error: ${errorOutput}`))
+            }
           })
         }
       })
