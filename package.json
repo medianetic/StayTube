@@ -1,7 +1,7 @@
 {
   "name": "staytube",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "StayTube - A high-performance Electron frontend for yt-dlp",
   "author": "Nick Weschkalnies",
   "type": "module",
