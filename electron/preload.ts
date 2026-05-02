@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('api', {
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
   openFile: (filePath: string) => ipcRenderer.invoke('open-file', filePath),
   openFolder: (filePath: string) => ipcRenderer.invoke('open-folder', filePath),
+  deleteVideo: (filePath: string) => ipcRenderer.invoke('delete-video', filePath),
   listVideos: (dirPath?: string) => ipcRenderer.invoke('list-videos', dirPath),
   onBinaryProgress: (callback: any) => ipcRenderer.on('binary-progress', (_event, value) => callback(value)),
   onDownloadProgress: (callback: any) => ipcRenderer.on('download-progress', (_event, value) => callback(value)),

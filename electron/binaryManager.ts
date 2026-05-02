@@ -25,10 +25,16 @@ export class BinaryManager {
     return path.join(this.binPath, fileName)
   }
 
-  async checkBinaries(): Promise<{ ytDlp: boolean; ffmpeg: boolean }> {
+  getFFprobePath(): string {
+    const fileName = process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe'
+    return path.join(this.binPath, fileName)
+  }
+
+  async checkBinaries(): Promise<{ ytDlp: boolean; ffmpeg: boolean; ffprobe: boolean }> {
     return {
       ytDlp: fs.existsSync(this.getYTIDlpPath()),
       ffmpeg: fs.existsSync(this.getFFmpegPath()),
+      ffprobe: fs.existsSync(this.getFFprobePath()),
     }
   }
 
@@ -79,8 +85,17 @@ export class BinaryManager {
     // Remove zip after extraction
     fs.unlinkSync(zipPath)
 
+    // Download ffprobe as well
+    let ffprobeUrl = url.replace('ffmpeg', 'ffprobe')
+    const probeZipPath = path.join(this.binPath, 'ffprobe.zip')
+    await this.downloadFile(ffprobeUrl, probeZipPath, onProgress)
+    const probeZip = new AdmZip(probeZipPath)
+    probeZip.extractAllTo(this.binPath, true)
+    fs.unlinkSync(probeZipPath)
+
     if (platform !== 'win32') {
       chmodSync(this.getFFmpegPath(), 0o755)
+      chmodSync(this.getFFprobePath(), 0o755)
     }
   }
 

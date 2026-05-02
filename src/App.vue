@@ -13,7 +13,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 
 const binariesReady = ref(false)
 const checkingBinaries = ref(true)
-const binaryStatus = ref({ ytDlp: false, ffmpeg: false })
+const binaryStatus = ref({ ytDlp: false, ffmpeg: false, ffprobe: false })
 const downloadingBinary = ref<string | null>(null)
 const downloadProgress = ref(0)
 
@@ -36,7 +36,7 @@ const applyTheme = (tTheme: string) => {
 const checkBinaries = async () => {
   checkingBinaries.value = true
   binaryStatus.value = await window.api.checkBinaries()
-  binariesReady.value = binaryStatus.value.ytDlp && binaryStatus.value.ffmpeg
+  binariesReady.value = binaryStatus.value.ytDlp && binaryStatus.value.ffmpeg && binaryStatus.value.ffprobe
   checkingBinaries.value = false
 }
 
@@ -45,8 +45,8 @@ const installBinaries = async () => {
     downloadingBinary.value = 'yt-dlp'
     await window.api.downloadYTIDlp()
   }
-  if (!binaryStatus.value.ffmpeg) {
-    downloadingBinary.value = 'ffmpeg'
+  if (!binaryStatus.value.ffmpeg || !binaryStatus.value.ffprobe) {
+    downloadingBinary.value = 'ffmpeg & ffprobe'
     await window.api.downloadFFmpeg()
   }
   downloadingBinary.value = null

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -7,8 +7,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Progress } from '@/components/ui/progress'
-import { Search, Download, Loader2, CheckCircle2, AlertCircle, Youtube, Languages, Settings2, PlayCircle, Folder } from 'lucide-vue-next'
+import { 
+  Search, Download, Loader2, CheckCircle2, AlertCircle, Youtube, Languages, Settings2, 
+  PlayCircle, Folder, LayoutGrid, List, Trash2, ArrowUpDown, Clock, HardDrive, Filter, X
+} from 'lucide-vue-next'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator 
+} from '@/components/ui/dropdown-menu'
+import { 
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle 
+} from '@/components/ui/dialog'
+
+interface VideoItem {
+  name: string
+  path: string
+  size: number
+  mtime: Date
+  thumbnail?: string
+  duration?: number
+}
 
 interface DownloadItem {
   url: string
@@ -30,8 +48,50 @@ const selectedFormat = ref('best')
 const enableSubtitles = ref(false)
 const selectedSubLang = ref('en')
 const activeDownloads = ref<DownloadItem[]>([])
-const localVideos = ref<any[]>([])
+const localVideos = ref<VideoItem[]>([])
 const error = ref('')
+
+const viewMode = ref<'detailed' | 'compact'>('detailed')
+const searchQuery = ref('')
+const sortBy = ref<'date' | 'name' | 'size'>('date')
+const videoToDelete = ref<VideoItem | null>(null)
+const isDeleting = ref(false)
+
+const filteredVideos = computed(() => {
+  let result = [...localVideos.value]
+
+  // Filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(v => v.name.toLowerCase().includes(query))
+  }
+
+  // Sort
+  result.sort((a, b) => {
+    if (sortBy.value === 'date') {
+      return new Date(b.mtime).getTime() - new Date(a.mtime).getTime()
+    } else if (sortBy.value === 'name') {
+      return a.name.localeCompare(b.name)
+    } else if (sortBy.value === 'size') {
+      return b.size - a.size
+    }
+    return 0
+  })
+
+  return result
+})
+
+const formatDuration = (seconds?: number) => {
+  if (!seconds) return '--:--'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  
+  if (h > 0) {
+    return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  }
+  return `${m}:${String(s).padStart(2, '0')}`
+}
 
 const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 Bytes'
@@ -134,10 +194,31 @@ const openFolder = (filePath?: string) => {
   }
 }
 
+const confirmDelete = (video: VideoItem) => {
+  videoToDelete.value = video
+}
+
+const deleteVideo = async () => {
+  if (!videoToDelete.value) return
+  isDeleting.value = true
+  const success = await window.api.deleteVideo(videoToDelete.value.path)
+  if (success) {
+    await loadLocalVideos()
+    videoToDelete.value = null
+  }
+  isDeleting.value = false
+}
+
 onMounted(async () => {
   loadLocalVideos()
   
-  // Load default preferences
+  // Load preferences
+  const mode = await window.api.getStoreValue('libraryViewMode')
+  if (mode) viewMode.value = mode as any
+  
+  const sort = await window.api.getStoreValue('librarySortBy')
+  if (sort) sortBy.value = sort as any
+
   const defQuality = await window.api.getStoreValue('defaultQuality')
   if (defQuality) selectedFormat.value = defQuality
   
@@ -154,6 +235,16 @@ onMounted(async () => {
     }
   })
 })
+
+const setViewMode = (mode: 'detailed' | 'compact') => {
+  viewMode.value = mode
+  window.api.setStoreValue('libraryViewMode', mode)
+}
+
+const setSortBy = (sort: 'date' | 'name' | 'size') => {
+  sortBy.value = sort
+  window.api.setStoreValue('librarySortBy', sort)
+}
 </script>
 
 <template>
@@ -344,63 +435,230 @@ onMounted(async () => {
     </div>
 
     <!-- Library Section -->
-    <div v-if="localVideos.length > 0" class="space-y-4 pt-4 pb-8">
-      <div class="flex items-center justify-between px-1">
-        <h3 class="text-lg font-bold tracking-tight">{{ $t('downloader.library') }}</h3>
-        <span class="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-          {{ localVideos.length }} {{ $t('downloader.file', localVideos.length) }}
-        </span>
+    <div v-if="localVideos.length > 0" class="space-y-6 pt-4 pb-12">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+        <div class="flex items-center gap-3">
+          <h3 class="text-xl font-bold tracking-tight">{{ $t('downloader.library') }}</h3>
+          <span class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/10">
+            {{ localVideos.length }}
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Search Input -->
+          <div class="relative w-full md:w-64 group">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input 
+              v-model="searchQuery" 
+              :placeholder="$t('downloader.search_library')" 
+              class="h-10 pl-9 pr-8 bg-muted/40 border-none focus-visible:ring-1 focus-visible:ring-primary/30"
+            />
+            <button 
+              v-if="searchQuery" 
+              @click="searchQuery = ''" 
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X class="h-4 w-4" />
+            </button>
+          </div>
+
+          <!-- Sort Dropdown -->
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="outline" size="icon" class="h-10 w-10 shrink-0 bg-muted/20 border-none">
+                <Filter class="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-48">
+              <DropdownMenuLabel>{{ $t('downloader.sort_by') }}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem @click="setSortBy('date')" :class="{ 'bg-primary/10 text-primary': sortBy === 'date' }">
+                <Clock class="mr-2 h-4 w-4" /> {{ $t('downloader.sort_date') }}
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="setSortBy('name')" :class="{ 'bg-primary/10 text-primary': sortBy === 'name' }">
+                <ArrowUpDown class="mr-2 h-4 w-4" /> {{ $t('downloader.sort_name') }}
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="setSortBy('size')" :class="{ 'bg-primary/10 text-primary': sortBy === 'size' }">
+                <HardDrive class="mr-2 h-4 w-4" /> {{ $t('downloader.sort_size') }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <!-- View Toggle -->
+          <div class="flex items-center bg-muted/40 p-1 rounded-lg">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              class="h-8 w-8 rounded-md transition-all"
+              :class="{ 'bg-background shadow-sm text-primary': viewMode === 'detailed' }"
+              @click="setViewMode('detailed')"
+            >
+              <LayoutGrid class="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              class="h-8 w-8 rounded-md transition-all"
+              :class="{ 'bg-background shadow-sm text-primary': viewMode === 'compact' }"
+              @click="setViewMode('compact')"
+            >
+              <List class="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
       
-      <div class="grid gap-3">
-        <Card v-for="video in localVideos" :key="video.path" class="overflow-hidden hover:border-primary/20 transition-colors border-transparent shadow-sm bg-muted/20">
-          <CardContent class="p-4">
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex items-center gap-4 min-w-0">
-                <div class="bg-primary/10 p-2.5 rounded-xl text-primary">
-                  <PlayCircle class="h-6 w-6" />
+      <!-- Grid View (Detailed) -->
+      <div v-if="viewMode === 'detailed'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+        <Card v-for="video in filteredVideos" :key="video.path" class="group overflow-hidden border-2 border-transparent hover:border-primary/20 transition-all duration-300 shadow-sm hover:shadow-xl bg-card/40">
+          <CardContent class="p-0">
+            <div class="flex flex-col h-full">
+              <!-- Thumbnail Wrapper -->
+              <div class="relative aspect-video bg-muted overflow-hidden">
+                <img v-if="video.thumbnail" :src="video.thumbnail" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div v-else class="w-full h-full flex items-center justify-center">
+                  <PlayCircle class="h-12 w-12 text-muted-foreground/30" />
                 </div>
-                <div class="min-w-0">
-                  <p class="text-sm font-bold truncate text-foreground">{{ video.name }}</p>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <p class="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{{ formatFileSize(video.size) }}</p>
-                    <span class="text-muted-foreground/30 text-[10px]">•</span>
-                    <p class="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{{ formatDate(video.mtime) }}</p>
-                  </div>
+                
+                <!-- Duration Badge -->
+                <div class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-sm text-[10px] font-bold text-white tracking-wider">
+                  {{ formatDuration(video.duration) }}
+                </div>
+
+                <!-- Hover Overlay Controls -->
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <Button size="icon" variant="secondary" class="h-10 w-10 rounded-full shadow-lg" @click="openFile(video.path)">
+                    <PlayCircle class="h-6 w-6" />
+                  </Button>
                 </div>
               </div>
-              
-              <div class="flex items-center gap-2 shrink-0">
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      class="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary transition-all"
-                      @click="openFolder(video.path)"
-                    >
-                      <Folder class="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p class="text-[10px] font-medium">{{ $t('downloader.open_folder') }}</p>
-                  </TooltipContent>
-                </Tooltip>
 
-                <Button 
-                  variant="secondary" 
-                  size="sm" 
-                  class="h-9 px-4 rounded-full font-bold text-xs gap-2 hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
-                  @click="openFile(video.path)"
-                >
-                  {{ $t('downloader.view_video') }}
-                </Button>
+              <!-- Content Wrapper -->
+              <div class="p-4 flex flex-col justify-between flex-1">
+                <div class="space-y-1 mb-4">
+                  <p class="text-sm font-bold line-clamp-1 text-foreground leading-tight" :title="video.name">{{ video.name }}</p>
+                  <div class="flex items-center gap-2 text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
+                    <span>{{ formatFileSize(video.size) }}</span>
+                    <span class="opacity-30">•</span>
+                    <span>{{ formatDate(video.mtime) }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-border/40">
+                  <div class="flex items-center gap-1">
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Button variant="ghost" size="icon" class="h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors" @click="openFolder(video.path)">
+                          <Folder class="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p class="text-[10px]">{{ $t('downloader.open_folder') }}</p></TooltipContent>
+                    </Tooltip>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Button variant="ghost" size="icon" class="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" @click="confirmDelete(video)">
+                          <Trash2 class="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent><p class="text-[10px]">{{ $t('downloader.delete_video') }}</p></TooltipContent>
+                    </Tooltip>
+                    <Button variant="outline" size="sm" class="h-8 px-4 text-xs font-bold rounded-full shadow-sm" @click="openFile(video.path)">
+                      {{ $t('downloader.view_video') }}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <!-- List View (Compact) -->
+      <div v-else class="space-y-2">
+        <div v-for="video in filteredVideos" :key="video.path" class="group flex items-center justify-between p-2 pl-4 pr-3 bg-muted/20 hover:bg-muted/40 rounded-xl border border-transparent hover:border-border transition-all transition-colors duration-200">
+          <div class="flex items-center gap-4 min-w-0">
+            <div class="bg-primary/10 p-2 rounded-lg text-primary shrink-0 group-hover:scale-110 transition-transform">
+              <PlayCircle class="h-4 w-4" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-bold truncate text-foreground pr-4" :title="video.name">{{ video.name }}</p>
+              <div class="flex items-center gap-2 mt-0.5 opacity-60">
+                <span class="text-[9px] font-bold uppercase tracking-wider">{{ formatFileSize(video.size) }}</span>
+                <span class="text-[9px]">•</span>
+                <span class="text-[9px] font-bold uppercase tracking-wider">{{ formatDate(video.mtime) }}</span>
+                <span v-if="video.duration" class="text-[9px]">•</span>
+                <span v-if="video.duration" class="text-[9px] font-bold uppercase tracking-wider">{{ formatDuration(video.duration) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1 shrink-0 ml-4">
+             <Tooltip>
+              <TooltipTrigger as-child>
+                <Button variant="ghost" size="icon" class="h-8 w-8 rounded-md text-muted-foreground hover:text-primary transition-colors" @click="openFolder(video.path)">
+                  <Folder class="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p class="text-[10px]">{{ $t('downloader.open_folder') }}</p></TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button variant="ghost" size="icon" class="h-8 w-8 rounded-md text-muted-foreground hover:text-destructive transition-colors" @click="confirmDelete(video)">
+                  <Trash2 class="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p class="text-[10px]">{{ $t('downloader.delete_video') }}</p></TooltipContent>
+            </Tooltip>
+            
+            <Button variant="ghost" size="icon" class="h-8 w-8 rounded-md text-muted-foreground hover:text-primary transition-colors" @click="openFile(video.path)">
+              <PlayCircle class="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Search State -->
+      <div v-if="filteredVideos.length === 0 && searchQuery" class="flex flex-col items-center justify-center py-20 text-muted-foreground animate-in fade-in zoom-in-95">
+        <div class="bg-muted p-4 rounded-full mb-4">
+          <Search class="h-8 w-8 opacity-20" />
+        </div>
+        <p class="text-sm font-medium">{{ $t('downloader.no_results') }}</p>
+        <Button variant="link" size="sm" class="mt-2 text-primary" @click="searchQuery = ''">
+          {{ $t('downloader.clear_search') }}
+        </Button>
+      </div>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <Dialog :open="!!videoToDelete" @update:open="(val) => !val && (videoToDelete = null)">
+      <DialogContent class="sm:max-w-md rounded-3xl">
+        <DialogHeader>
+          <DialogTitle class="text-xl font-bold flex items-center gap-2">
+            <AlertCircle class="h-5 w-5 text-destructive" />
+            {{ $t('downloader.delete_confirm_title') }}
+          </DialogTitle>
+          <DialogDescription class="pt-2">
+            {{ $t('downloader.delete_confirm_desc') }}
+            <p class="mt-3 p-3 bg-muted rounded-xl text-xs font-mono break-all text-foreground border border-border/50">
+              {{ videoToDelete?.name }}
+            </p>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="mt-6 gap-2 sm:gap-0">
+          <Button variant="outline" class="rounded-xl px-6" @click="videoToDelete = null">
+            {{ $t('downloader.cancel') }}
+          </Button>
+          <Button variant="destructive" class="rounded-xl px-6 shadow-lg shadow-destructive/20" :disabled="isDeleting" @click="deleteVideo">
+            <Loader2 v-if="isDeleting" class="mr-2 h-4 w-4 animate-spin" />
+            {{ $t('downloader.delete_forever') }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 

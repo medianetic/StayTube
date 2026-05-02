@@ -1,16 +1,26 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, Menu } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, shell, Menu, protocol } from 'electron'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import Store from 'electron-store'
 import { BinaryManager } from './binaryManager'
 import { Downloader } from './downloader'
+import { ThumbnailManager } from './thumbnailManager'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const store = new Store()
 const binaryManager = new BinaryManager()
 const downloader = new Downloader(binaryManager)
+const thumbnailManager = new ThumbnailManager(binaryManager)
+
+// Register thumb protocol
+app.whenReady().then(() => {
+  protocol.handle('thumb', (request) => {
+    const filePath = request.url.slice('thumb://'.length)
+    return Response.redirect(`file://${filePath}`)
+  })
+})
 
 // ... rest of env setup
 process.env.APP_ROOT = path.join(__dirname, '..')
@@ -29,6 +39,7 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
+      webSecurity: true,
     },
   })
 
@@ -78,6 +89,15 @@ function createWindow() {
   ipcMain.handle('open-external', (_event, url) => shell.openExternal(url))
   ipcMain.handle('open-file', (_event, filePath) => shell.openPath(filePath))
   ipcMain.handle('open-folder', (_event, filePath) => shell.showItemInFolder(filePath))
+  ipcMain.handle('delete-video', async (_event, filePath) => {
+    try {
+      await fs.unlink(filePath)
+      return true
+    } catch (e) {
+      console.error('Failed to delete video:', e)
+      return false
+    }
+  })
 
   ipcMain.handle('list-videos', async (_event, dirPath) => {
     try {
@@ -89,12 +109,20 @@ function createWindow() {
       for (const file of files) {
         const ext = path.extname(file).toLowerCase()
         if (videoExtensions.includes(ext)) {
-          const stats = await fs.stat(path.join(folder, file))
+          const fullPath = path.join(folder, file)
+          const stats = await fs.stat(fullPath)
+          
+          // Try to get thumbnail and metadata
+          const thumb = await thumbnailManager.getThumbnail(fullPath)
+          const metadata = await thumbnailManager.getVideoMetadata(fullPath)
+
           videos.push({
             name: file,
-            path: path.join(folder, file),
+            path: fullPath,
             size: stats.size,
-            mtime: stats.mtime
+            mtime: stats.mtime,
+            thumbnail: thumb ? `thumb://${thumb}` : null,
+            duration: metadata?.duration || 0
           })
         }
       }
