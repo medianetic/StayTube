@@ -1,21 +1,6 @@
 # ClipVault
 
-ClipVault is a modern, high-performance desktop application built with Electron and Vue 3 that serves as a powerful frontend for `yt-dlp`. It provides a streamlined, user-friendly interface for downloading videos and audio from YouTube and over 1,000 other supported platforms.
-
-## 📸 Screenshots
-
-<p align="center">
-  <img src="screenshots/main-ui.png" width="800" alt="ClipVault Main Interface">
-  <br>
-  <em>Main Downloader Interface with Smart Metadata Fetching</em>
-</p>
-
-<p align="center">
-  <img src="screenshots/library-grid.png" width="400" alt="Library Grid View">
-  <img src="screenshots/library-compact.png" width="400" alt="Library Compact View">
-  <br>
-  <em>Visual Library with Thumbnails and Compact Shortlist View</em>
-</p>
+ClipVault is a modern, high-performance desktop application built with Electron and Vue 3 that serves as a powerful frontend for `yt-dlp`. It provides a streamlined, user-friendly interface for downloading videos and audio from YouTube and other supported platforms.
 
 ## Key Features
 
